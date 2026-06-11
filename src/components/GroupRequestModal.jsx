@@ -13,13 +13,6 @@ import {
 import EmployeeSelector from './EmployeeSelector'
 import { TIME_OFF_TYPES, APPROVERS, EMPLOYEES } from '../data/mockData'
 
-const TYPE_TILE_STYLES = {
-  primary: 'border-primary-300 bg-primary-50 text-primary-800',
-  secondary: 'border-secondary-300 bg-secondary-50 text-secondary-800',
-  warning: 'border-warning-300 bg-warning-50 text-warning-800',
-  success: 'border-success-300 bg-success-50 text-success-800',
-}
-
 function daysBetween(start, end) {
   if (!start || !end) return 0
   const s = new Date(start)
@@ -208,16 +201,27 @@ export default function GroupRequestModal({ open, onClose, onSubmit }) {
                     type="button"
                     key={t.id}
                     onClick={() => setType(t.id)}
-                    className={`flex flex-col items-start gap-1 rounded-md border px-3 py-2.5 text-left text-sm transition ${
+                    aria-pressed={active}
+                    className={`flex flex-col items-start gap-1 rounded-md border px-3 py-2.5 text-left text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${
                       active
-                        ? 'border-primary-500 bg-primary-50 ring-2 ring-primary-500/30'
-                        : TYPE_TILE_STYLES[t.color] + ' hover:brightness-95'
+                        ? 'border-primary-600 bg-primary-600 text-white ring-2 ring-primary-500 ring-offset-2'
+                        : 'border-secondary-300 bg-white text-secondary-900 hover:border-secondary-400 hover:bg-secondary-50'
                     }`}
                   >
-                    <span className="text-xs font-medium uppercase tracking-wide text-secondary-500">
+                    <span
+                      className={`text-xs font-medium uppercase tracking-wide ${
+                        active ? 'text-primary-100' : 'text-secondary-500'
+                      }`}
+                    >
                       {active ? 'Selected' : 'Choose'}
                     </span>
-                    <span className="font-semibold text-secondary-900">{t.label}</span>
+                    <span
+                      className={`font-semibold ${
+                        active ? 'text-white' : 'text-secondary-900'
+                      }`}
+                    >
+                      {t.label}
+                    </span>
                   </button>
                 )
               })}
