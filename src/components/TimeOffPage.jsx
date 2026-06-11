@@ -1,0 +1,73 @@
+import { useState } from 'react'
+import { Settings as SettingsIcon, Download } from 'lucide-react'
+import BalanceCards from './BalanceCards'
+import FilterPanel from './FilterPanel'
+import ViewToggle from './ViewToggle'
+import CalendarView from './CalendarView'
+import AddRequestMenu from './AddRequestMenu'
+import GroupRequestModal from './GroupRequestModal'
+
+export default function TimeOffPage() {
+  const [view, setView] = useState('calendar')
+  const [groupOpen, setGroupOpen] = useState(false)
+  const [toast, setToast] = useState(null)
+
+  function handleAdd(kind) {
+    if (kind === 'group') {
+      setGroupOpen(true)
+    } else {
+      setToast('Opening individual request form…')
+      setTimeout(() => setToast(null), 2200)
+    }
+  }
+
+  function handleSubmit(payload) {
+    console.info('Group time off request submitted', payload)
+  }
+
+  return (
+    <main className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-secondary-50">
+      {/* Page header */}
+      <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6">
+        <h1 className="text-xl font-semibold text-secondary-900">Time Off Requests</h1>
+        <div className="flex flex-wrap items-center gap-2">
+          <button type="button" className="btn-secondary">
+            <SettingsIcon className="h-4 w-4" />
+            Time Off Settings
+          </button>
+          <button type="button" className="btn-secondary">
+            <Download className="h-4 w-4" />
+            Export CSV
+          </button>
+          <AddRequestMenu onSelect={handleAdd} />
+        </div>
+      </div>
+
+      {/* Page body */}
+      <div className="grid flex-1 grid-cols-1 gap-4 px-4 pb-6 sm:px-6 lg:grid-cols-[260px_1fr]">
+        <div className="space-y-4">
+          <ViewToggle value={view} onChange={setView} />
+          <FilterPanel />
+        </div>
+        <div className="flex flex-1 flex-col gap-4">
+          <BalanceCards />
+          <CalendarView />
+        </div>
+      </div>
+
+      {/* Toast */}
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-30 animate-slideUp rounded-lg bg-secondary-900 px-4 py-2 text-sm text-white shadow-lg">
+          {toast}
+        </div>
+      )}
+
+      {/* Full-page Group Request modal */}
+      <GroupRequestModal
+        open={groupOpen}
+        onClose={() => setGroupOpen(false)}
+        onSubmit={handleSubmit}
+      />
+    </main>
+  )
+}
