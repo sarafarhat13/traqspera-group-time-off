@@ -24,17 +24,20 @@ export default {
         ],
       },
       colors: {
+        // Modus Blue ramp — centered on Trimble Blue #0063a3 at the 600 step.
+        // 50/100 are Trimble Blue Pale tints, 500 is Trimble Blue Light, and
+        // 700-900 are progressively darker shades for hover/active states.
         primary: {
-          50: '#f0f9ff',
-          100: '#e0f2fe',
-          200: '#bae6fd',
-          300: '#7dd3fc',
-          400: '#38bdf8',
-          500: '#0ea5e9',
-          600: '#0284c7',
-          700: '#0369a1',
-          800: '#075985',
-          900: '#0c4a6e',
+          50: '#f0f7fc',
+          100: '#dcedf9',
+          200: '#b9dbf3',
+          300: '#80bce4',
+          400: '#4b9dd2',
+          500: '#217cbb',
+          600: '#0063a3',
+          700: '#004b80',
+          800: '#003c66',
+          900: '#002c4d',
         },
         secondary: {
           50: '#f8fafc',
