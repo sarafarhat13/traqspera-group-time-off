@@ -1,0 +1,1 @@
+var e={xs:`sm`,sm:`md`,md:`lg`,lg:`lg`};export{e as t};
