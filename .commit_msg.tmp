@@ -1,0 +1,16 @@
+Replace employee list with sortable Modus table
+
+Convert the group-request employee selector from a stacked card list into
+a Modus-styled table so the data can be scanned in columns.
+
+- New columns: Name (with Modus avatar + employee number badge), Union,
+  Department, Cost Center, and Role. All five are click-to-sort with an
+  asc/desc toggle, indicated by Modus sort_arrow_up / sort_arrow_down /
+  unsorted_arrows icons. Default sort is Name ascending.
+- Replace the row-level checkbox with a real table column. The header
+  checkbox selects/deselects every row that matches the current filters
+  and shows an indeterminate state when only some are selected.
+- Drop the now-redundant standalone "Select all" toolbar button, since
+  the header checkbox covers the same action.
+- Sort logic is locale-aware string compare, applied after the existing
+  search and union/department/cost center/role filters.

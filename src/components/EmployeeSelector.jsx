@@ -116,16 +116,61 @@ function FilterMultiSelect({ label, options, value, onChange }) {
   )
 }
 
+const SORTABLE_COLUMNS = [
+  { id: 'name', label: 'Name', accessor: (e) => e.name },
+  { id: 'union', label: 'Union', accessor: (e) => e.union },
+  { id: 'department', label: 'Department', accessor: (e) => e.department },
+  { id: 'costCenter', label: 'Cost Center', accessor: (e) => e.costCenter },
+  { id: 'role', label: 'Role', accessor: (e) => e.role },
+]
+
+function SortHeader({ column, sort, onSort, className = '' }) {
+  const active = sort.column === column.id
+  const direction = active ? sort.direction : null
+  return (
+    <th
+      scope="col"
+      className={`sticky top-0 z-10 border-b border-secondary-200 bg-secondary-50 px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-secondary-600 ${className}`}
+      aria-sort={
+        active ? (direction === 'asc' ? 'ascending' : 'descending') : 'none'
+      }
+    >
+      <button
+        type="button"
+        onClick={() => onSort(column.id)}
+        className={`flex items-center gap-1 transition hover:text-secondary-900 focus:outline-none focus-visible:text-primary-700 ${
+          active ? 'text-secondary-900' : ''
+        }`}
+      >
+        <span>{column.label}</span>
+        <ModusWcIcon
+          name={
+            active
+              ? direction === 'asc'
+                ? 'sort_arrow_up'
+                : 'sort_arrow_down'
+              : 'unsorted_arrows'
+          }
+          size="sm"
+          decorative
+          customClass={active ? 'text-primary-600' : 'text-secondary-400'}
+        />
+      </button>
+    </th>
+  )
+}
+
 export default function EmployeeSelector({ selectedIds, onChange }) {
   const [search, setSearch] = useState('')
   const [unions, setUnions] = useState([])
   const [departments, setDepartments] = useState([])
   const [costCenters, setCostCenters] = useState([])
   const [roles, setRoles] = useState([])
+  const [sort, setSort] = useState({ column: 'name', direction: 'asc' })
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
-    return EMPLOYEES.filter((e) => {
+    const rows = EMPLOYEES.filter((e) => {
       if (q && !`${e.name} ${e.employeeNumber} ${e.email}`.toLowerCase().includes(q)) {
         return false
       }
@@ -135,10 +180,22 @@ export default function EmployeeSelector({ selectedIds, onChange }) {
       if (roles.length && !roles.includes(e.role)) return false
       return true
     })
-  }, [search, unions, departments, costCenters, roles])
+
+    const column = SORTABLE_COLUMNS.find((c) => c.id === sort.column)
+    if (!column) return rows
+
+    const sorted = [...rows].sort((a, b) => {
+      const va = String(column.accessor(a) ?? '').toLowerCase()
+      const vb = String(column.accessor(b) ?? '').toLowerCase()
+      return va.localeCompare(vb)
+    })
+    return sort.direction === 'desc' ? sorted.reverse() : sorted
+  }, [search, unions, departments, costCenters, roles, sort])
 
   const allFilteredSelected =
     filtered.length > 0 && filtered.every((e) => selectedIds.includes(e.id))
+  const someFilteredSelected =
+    filtered.some((e) => selectedIds.includes(e.id)) && !allFilteredSelected
 
   function toggleEmployee(id) {
     if (selectedIds.includes(id)) {
@@ -156,6 +213,16 @@ export default function EmployeeSelector({ selectedIds, onChange }) {
       const merged = new Set([...selectedIds, ...filtered.map((e) => e.id)])
       onChange(Array.from(merged))
     }
+  }
+
+  function handleSort(columnId) {
+    setSort((prev) => {
+      if (prev.column !== columnId) return { column: columnId, direction: 'asc' }
+      return {
+        column: columnId,
+        direction: prev.direction === 'asc' ? 'desc' : 'asc',
+      }
+    })
   }
 
   function clearAll() {
@@ -190,31 +257,16 @@ export default function EmployeeSelector({ selectedIds, onChange }) {
       </div>
 
       <div className="flex flex-col gap-2 rounded-md border border-secondary-200 bg-white p-3">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-          <div className="flex-1">
-            <ModusWcTextInput
-              type="text"
-              includeSearch
-              includeClear
-              value={search}
-              placeholder="Search by name or employee #"
-              aria-label="Search employees"
-              onInputChange={(e) => setSearch(e.detail?.target?.value ?? '')}
-              onClearClick={() => setSearch('')}
-            />
-          </div>
-          <ModusWcButton
-            variant="borderless"
-            color="secondary"
-            size="sm"
-            disabled={filtered.length === 0}
-            onButtonClick={selectAllFiltered}
-            customClass="sm:ml-auto"
-          >
-            {allFilteredSelected ? 'Deselect all' : 'Select all'}
-            <span className="ml-1 text-secondary-400">({filtered.length})</span>
-          </ModusWcButton>
-        </div>
+        <ModusWcTextInput
+          type="text"
+          includeSearch
+          includeClear
+          value={search}
+          placeholder="Search by name or employee #"
+          aria-label="Search employees"
+          onInputChange={(e) => setSearch(e.detail?.target?.value ?? '')}
+          onClearClick={() => setSearch('')}
+        />
 
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex items-center gap-1.5 text-xs font-semibold text-secondary-500">
@@ -249,65 +301,96 @@ export default function EmployeeSelector({ selectedIds, onChange }) {
       </div>
 
       <div className="flex min-h-0 flex-col overflow-hidden rounded-md border border-secondary-200 bg-white">
-        <div className="flex-1 overflow-y-auto scrollbar-thin">
+        <div className="flex-1 overflow-auto scrollbar-thin">
           {filtered.length === 0 ? (
             <div className="flex h-full items-center justify-center p-8 text-sm text-secondary-500">
               No employees match the current filters.
             </div>
           ) : (
-            <ul role="list" className="divide-y divide-secondary-100">
-              {filtered.map((emp) => {
-                const checked = selectedIds.includes(emp.id)
-                return (
-                  <li key={emp.id}>
-                    <div
-                      className={`flex cursor-pointer items-center gap-3 px-3 py-2 transition ${
+            <table className="w-full border-collapse text-sm">
+              <thead>
+                <tr>
+                  <th
+                    scope="col"
+                    className="sticky top-0 z-10 w-10 border-b border-secondary-200 bg-secondary-50 px-3 py-2"
+                  >
+                    <ModusWcCheckbox
+                      value={allFilteredSelected}
+                      indeterminate={someFilteredSelected}
+                      aria-label={
+                        allFilteredSelected
+                          ? 'Deselect all filtered employees'
+                          : 'Select all filtered employees'
+                      }
+                      onInputChange={(e) => {
+                        e.stopPropagation?.()
+                        selectAllFiltered()
+                      }}
+                    />
+                  </th>
+                  {SORTABLE_COLUMNS.map((col) => (
+                    <SortHeader
+                      key={col.id}
+                      column={col}
+                      sort={sort}
+                      onSort={handleSort}
+                    />
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((emp) => {
+                  const checked = selectedIds.includes(emp.id)
+                  return (
+                    <tr
+                      key={emp.id}
+                      onClick={() => toggleEmployee(emp.id)}
+                      className={`cursor-pointer border-b border-secondary-100 transition last:border-b-0 ${
                         checked ? 'bg-primary-50/60' : 'hover:bg-secondary-50'
                       }`}
-                      onClick={() => toggleEmployee(emp.id)}
                     >
-                      <ModusWcCheckbox
-                        value={checked}
-                        aria-label={`Select ${emp.name}`}
-                        onInputChange={(e) => {
-                          e.stopPropagation?.()
-                          toggleEmployee(emp.id)
-                        }}
-                      />
-                      <ModusWcAvatar
-                        alt={emp.name}
-                        size="sm"
-                        shape="circle"
-                      />
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="truncate text-sm font-medium text-secondary-900">
-                            {emp.name}
-                          </span>
-                          <span className="rounded bg-secondary-100 px-1.5 py-0.5 font-mono text-[10px] text-secondary-600">
-                            #{emp.employeeNumber}
-                          </span>
-                        </div>
-                        <div className="truncate text-xs text-secondary-500">
-                          {emp.role} · {emp.department} · {emp.costCenter}
-                        </div>
-                      </div>
-                      <span className="hidden truncate text-xs text-secondary-500 sm:inline">
-                        {emp.union}
-                      </span>
-                      {checked && (
-                        <ModusWcIcon
-                          name="check_circle"
-                          size="sm"
-                          decorative
-                          customClass="text-primary-600"
+                      <td className="w-10 px-3 py-2 align-middle">
+                        <ModusWcCheckbox
+                          value={checked}
+                          aria-label={`Select ${emp.name}`}
+                          onInputChange={(e) => {
+                            e.stopPropagation?.()
+                            toggleEmployee(emp.id)
+                          }}
                         />
-                      )}
-                    </div>
-                  </li>
-                )
-              })}
-            </ul>
+                      </td>
+                      <td className="px-3 py-2 align-middle">
+                        <div className="flex items-center gap-2">
+                          <ModusWcAvatar alt={emp.name} size="sm" shape="circle" />
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="truncate text-sm font-medium text-secondary-900">
+                                {emp.name}
+                              </span>
+                              <span className="rounded bg-secondary-100 px-1.5 py-0.5 font-mono text-[10px] text-secondary-600">
+                                #{emp.employeeNumber}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-3 py-2 align-middle text-secondary-700">
+                        {emp.union}
+                      </td>
+                      <td className="px-3 py-2 align-middle text-secondary-700">
+                        {emp.department}
+                      </td>
+                      <td className="px-3 py-2 align-middle text-secondary-700">
+                        {emp.costCenter}
+                      </td>
+                      <td className="px-3 py-2 align-middle text-secondary-700">
+                        {emp.role}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
           )}
         </div>
       </div>
