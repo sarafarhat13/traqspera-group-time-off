@@ -90,7 +90,7 @@ function buildMonthGrid(year, month) {
   return cells
 }
 
-export default function CalendarView() {
+export default function CalendarView({ onEventClick }) {
   const year = 2026
   const month = 3
   const [viewMode, setViewMode] = useState('month')
@@ -167,26 +167,44 @@ export default function CalendarView() {
                     {String(cell.day).padStart(2, '0')}
                   </div>
                   <div className="flex flex-col gap-1">
-                    {events.map((e, i) => (
-                      <div
-                        key={`${cell.key}-${i}`}
-                        className={`flex items-center gap-1 truncate rounded px-1.5 py-0.5 text-[10px] font-medium leading-tight ${
-                          STATUS_STYLES[e.status] ?? 'bg-secondary-200 text-secondary-800'
-                        }`}
-                        title={e.label}
-                      >
-                        {e.status === 'declined' && (
-                          <ModusWcIcon name="warning" size="sm" decorative customClass="text-[10px]" />
-                        )}
-                        {e.status === 'holiday' && (
-                          <ModusWcIcon name="calendar" size="sm" decorative customClass="text-[10px]" />
-                        )}
-                        {e.status === 'blackout' && (
-                          <span className="flex h-2.5 w-2.5 flex-shrink-0 items-center justify-center rounded-full border border-white" />
-                        )}
-                        <span className="truncate">{e.label}</span>
-                      </div>
-                    ))}
+                    {events.map((e, i) => {
+                      const clickable = Boolean(e.requestId)
+                      const className = `flex items-center gap-1 truncate rounded px-1.5 py-0.5 text-[10px] font-medium leading-tight ${
+                        STATUS_STYLES[e.status] ?? 'bg-secondary-200 text-secondary-800'
+                      } ${clickable ? 'cursor-pointer hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-primary-500' : ''}`
+                      const inner = (
+                        <>
+                          {e.status === 'declined' && (
+                            <ModusWcIcon name="warning" size="sm" decorative customClass="text-[10px]" />
+                          )}
+                          {e.status === 'holiday' && (
+                            <ModusWcIcon name="calendar" size="sm" decorative customClass="text-[10px]" />
+                          )}
+                          {e.status === 'blackout' && (
+                            <span className="flex h-2.5 w-2.5 flex-shrink-0 items-center justify-center rounded-full border border-white" />
+                          )}
+                          <span className="truncate">{e.label}</span>
+                        </>
+                      )
+                      if (clickable) {
+                        return (
+                          <button
+                            type="button"
+                            key={`${cell.key}-${i}`}
+                            className={`${className} text-left`}
+                            title={e.label}
+                            onClick={() => onEventClick?.(e)}
+                          >
+                            {inner}
+                          </button>
+                        )
+                      }
+                      return (
+                        <div key={`${cell.key}-${i}`} className={className} title={e.label}>
+                          {inner}
+                        </div>
+                      )
+                    })}
                   </div>
                 </div>
               )

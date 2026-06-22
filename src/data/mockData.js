@@ -89,20 +89,86 @@ export const EMPLOYEES = Array.from({ length: 36 }, (_, i) => {
 })
 
 // Calendar mock — April 2026 (matches the screenshot reference).
-// Each event { date: 'YYYY-MM-DD', label, status }
+// Each event { date: 'YYYY-MM-DD', label, status, requestId? }
 export const CALENDAR_EVENTS = [
   { date: '2026-04-05', label: '10001 - Sara Farhat - Vacation', status: 'approved' },
   { date: '2026-04-06', label: '10001 - Sara Farhat - Vacation', status: 'approved' },
   { date: '2026-04-07', label: '10001 - Sara Farhat - Vacation', status: 'approved' },
-  { date: '2026-04-12', label: '10002 - John Smith - PTO', status: 'pending' },
-  { date: '2026-04-13', label: '10002 - John Smith - PTO', status: 'pending' },
-  { date: '2026-04-14', label: '10002 - John Smith - PTO', status: 'declined' },
+  { date: '2026-04-12', label: '10002 - John Smith - PTO', status: 'pending', requestId: 'req-482' },
+  { date: '2026-04-13', label: '10002 - John Smith - PTO', status: 'pending', requestId: 'req-482' },
+  { date: '2026-04-14', label: '10002 - John Smith - PTO', status: 'declined', requestId: 'req-482' },
   { date: '2026-04-17', label: 'Mental Health Day - Company Holiday', status: 'holiday' },
-  { date: '2026-04-21', label: '10002 - John Smith - PTO', status: 'declined' },
+  { date: '2026-04-21', label: '10002 - John Smith - PTO', status: 'declined', requestId: 'req-512' },
   { date: '2026-04-22', label: '10002 - John Smith - Vacation', status: 'approved' },
   { date: '2026-04-23', label: '10002 - John Smith - Vacation', status: 'approved' },
   { date: '2026-04-24', label: '10002 - John Smith - Vacation', status: 'approved' },
 ]
+
+// Full request payloads keyed by id (powering the request detail modal).
+export const REQUESTS = {
+  'req-482': {
+    id: 'req-482',
+    requestNumber: 482,
+    employee: {
+      id: '10002',
+      employeeNumber: '10002',
+      name: 'Dwayne Johnson',
+      initials: 'DJ',
+    },
+    status: 'pending',
+    requestedOn: '2026-04-09T13:20:00',
+    type: 'Vacation 1',
+    dateRange: { start: '2026-04-13', end: '2026-04-17' },
+    requesterComment: 'Going to visit family in London.',
+    days: [
+      { date: '2026-04-13', hours: 4, conflict: false },
+      { date: '2026-04-14', hours: 4, conflict: true },
+      { date: '2026-04-15', hours: 8, conflict: false },
+      { date: '2026-04-16', hours: 8, conflict: false },
+      { date: '2026-04-17', hours: 8, conflict: false },
+    ],
+    totalHours: 32,
+    balance: { vacation: 12, sick: 0 },
+    warning: {
+      kind: 'limit',
+      title: 'Daily absence limit exceeded',
+      message:
+        'Approving this request will exceed the recommended daily absence limit for this date range. Please review coverage before approving.',
+    },
+    history: [
+      { at: '2026-04-09T13:20:00', actor: 'Dwayne Johnson', action: 'Submitted request' },
+    ],
+  },
+  'req-512': {
+    id: 'req-512',
+    requestNumber: 512,
+    employee: {
+      id: '10002',
+      employeeNumber: '10002',
+      name: 'Dwayne Johnson',
+      initials: 'DJ',
+    },
+    status: 'pending',
+    requestedOn: '2026-04-15T09:05:00',
+    type: 'Vacation 1',
+    dateRange: { start: '2026-04-21', end: '2026-04-21' },
+    requesterComment: 'Day off requested during product launch week.',
+    days: [
+      { date: '2026-04-21', hours: 8, conflict: true },
+    ],
+    totalHours: 8,
+    balance: { vacation: 12, sick: 0 },
+    warning: {
+      kind: 'blackout',
+      title: 'Blackout date(s) requested',
+      message:
+        'This request overrides company blackout date(s). Please review coverage before approving.',
+    },
+    history: [
+      { at: '2026-04-15T09:05:00', actor: 'Dwayne Johnson', action: 'Submitted request' },
+    ],
+  },
+}
 
 // Blackout / company event blocks
 export const BLOCK_EVENTS = [

@@ -11,11 +11,21 @@ import ViewToggle from './ViewToggle'
 import CalendarView from './CalendarView'
 import AddRequestMenu from './AddRequestMenu'
 import GroupRequestModal from './GroupRequestModal'
+import PendingRequestModal from './PendingRequestModal'
+import { REQUESTS } from '../data/mockData'
+
+const ACTION_LABEL = {
+  approve: 'approved',
+  decline: 'declined',
+  edit: 'opened for edit',
+  delete: 'deleted',
+}
 
 export default function TimeOffPage() {
   const [view, setView] = useState('calendar')
   const [groupOpen, setGroupOpen] = useState(false)
   const [toast, setToast] = useState(null)
+  const [activeRequest, setActiveRequest] = useState(null)
 
   function handleAdd(kind) {
     if (kind === 'group') {
@@ -28,6 +38,18 @@ export default function TimeOffPage() {
 
   function handleSubmit(payload) {
     console.info('Group time off request submitted', payload)
+  }
+
+  function handleEventClick(event) {
+    const id = event?.requestId
+    const request = id ? REQUESTS[id] : null
+    if (request) setActiveRequest(request)
+  }
+
+  function handleRequestAction(action, { request }) {
+    setActiveRequest(null)
+    setToast(`Request #${request.requestNumber} ${ACTION_LABEL[action] ?? action}.`)
+    setTimeout(() => setToast(null), 2200)
   }
 
   return (
@@ -54,7 +76,7 @@ export default function TimeOffPage() {
         </div>
         <div className="flex flex-1 flex-col gap-4">
           <BalanceCards />
-          <CalendarView />
+          <CalendarView onEventClick={handleEventClick} />
         </div>
       </div>
 
@@ -68,6 +90,13 @@ export default function TimeOffPage() {
         open={groupOpen}
         onClose={() => setGroupOpen(false)}
         onSubmit={handleSubmit}
+      />
+
+      <PendingRequestModal
+        open={Boolean(activeRequest)}
+        request={activeRequest}
+        onClose={() => setActiveRequest(null)}
+        onAction={handleRequestAction}
       />
     </main>
   )
