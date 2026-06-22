@@ -189,9 +189,9 @@ export default function GroupRequestModal({ open, onClose, onSubmit }) {
           }}
         />
       ) : (
-        <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4 sm:p-6 lg:grid lg:grid-cols-[minmax(0,440px)_minmax(0,1fr)] lg:overflow-hidden">
-          <ModusWcCard bordered customClass="request-form-card">
-            <form onSubmit={handleSubmit} className="flex flex-col gap-5 overflow-y-auto scrollbar-thin">
+        <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4 sm:p-6 lg:grid lg:grid-cols-[minmax(0,440px)_minmax(0,1fr)] lg:grid-rows-[minmax(0,1fr)] lg:overflow-hidden">
+          <div className="flex min-h-0 flex-col overflow-hidden rounded-md border border-secondary-200 bg-white">
+            <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto scrollbar-thin p-3">
               <SectionTitle icon="tag" title="Type of Time Off" />
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                 {TIME_OFF_TYPES.map((t) => {
@@ -355,12 +355,12 @@ export default function GroupRequestModal({ open, onClose, onSubmit }) {
                 label=""
               />
             </form>
-          </ModusWcCard>
+          </div>
 
-          <div className="flex min-h-0 flex-col gap-3">
-            <ModusWcCard bordered customClass="employee-card flex-1">
+          <div className="flex min-h-0 flex-col gap-3 lg:h-full lg:overflow-hidden">
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-md border border-secondary-200 bg-white p-3">
               <EmployeeSelector selectedIds={selectedIds} onChange={setSelectedIds} />
-            </ModusWcCard>
+            </div>
 
             <ModusWcCard bordered customClass="summary-card">
               <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
