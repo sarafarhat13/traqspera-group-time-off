@@ -39,11 +39,23 @@ modus-wc-navbar.traqspera-navbar {
   position: relative;
   z-index: 20;
 }
-modus-wc-side-navigation.traqspera-sidenav {
+/* Modus's host CSS hard-codes `height: 100vh`, which overshoots the post-navbar
+   flex row. Pin the host to the row, give it the rail's natural width (4rem),
+   and let the inner absolutely-positioned panel anchor to the host.
+   Note: Modus's `customClass` prop is applied to the inner <nav>, not the host,
+   so we target the host element by tag. */
+modus-wc-side-navigation {
   position: relative;
   z-index: 10;
+  align-self: stretch;
   height: 100%;
-  align-self: flex-start;
+  width: 4rem;
+  flex: 0 0 4rem;
+}
+modus-wc-side-navigation .modus-wc-side-navigation {
+  top: 0;
+  left: 0;
+  max-height: 100%;
 }
 modus-wc-button-group {
   display: inline-flex;

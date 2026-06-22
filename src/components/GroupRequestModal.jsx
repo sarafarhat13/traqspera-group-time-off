@@ -142,7 +142,7 @@ export default function GroupRequestModal({ open, onClose, onSubmit }) {
       role="dialog"
       aria-modal="true"
       aria-labelledby="group-request-title"
-      className="fixed inset-0 z-40 flex flex-col bg-secondary-50 animate-fadeIn"
+      className="fixed top-0 right-0 bottom-0 left-16 z-40 flex flex-col bg-secondary-50 animate-fadeIn"
     >
       <header className="flex shrink-0 items-center justify-between border-b border-secondary-200 bg-white px-4 py-3 sm:px-6">
         <div className="flex items-center gap-3">

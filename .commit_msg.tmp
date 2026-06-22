@@ -1,0 +1,18 @@
+Stop side nav rail from overlapping page and modal content
+
+Modus's modus-wc-side-navigation host CSS hard-codes height: 100vh and
+renders its rail as a position: absolute / z-index: 999 child, so the
+host took 0 width in our flex row and the rail painted over the page
+(and the modal) on the left.
+
+- Pin the side nav host to the post-navbar flex row: align-self: stretch,
+  height: 100%, and reserve the rail's natural 4rem of horizontal space
+  (width + flex-basis) so siblings flow to its right naturally.
+- Anchor the inner panel with top/left: 0 and max-height: 100% so the
+  expanded panel still overlays cleanly without escaping the host.
+- Target the host by tag (Modus's customClass prop is applied to the
+  inner nav, not the host element).
+- Drop the now-redundant pl-14 spacer in App.jsx.
+- Push GroupRequestModal to left-16 so it sits beside the rail instead
+  of being painted over by it (the rail's z-index: 999 wins versus the
+  modal's z-40).

@@ -17,7 +17,7 @@ export default function App() {
           expanded={navOpen}
           onExpandedChange={(open) => setNavOpen(open)}
         />
-        <div className="flex min-h-0 flex-1 pl-14">
+        <div className="flex min-h-0 flex-1">
           <TimeOffPage />
         </div>
       </div>
