@@ -251,22 +251,14 @@ export default function EmployeeSelector({ selectedIds, onChange }) {
 
   return (
     <div className="grid h-full grid-rows-[auto_auto_1fr] gap-3">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <ModusWcIcon name="people_group" size="sm" decorative />
-          <h3 className="text-sm font-semibold text-secondary-800">Select Employees</h3>
-          <ModusWcChip
-            label={`${selectedIds.length} selected`}
-            size="sm"
-            variant="filled"
-          />
-        </div>
-        {activeFilters > 0 && (
-          <ModusWcButton variant="borderless" color="secondary" size="sm" onButtonClick={clearAll}>
-            <ModusWcIcon name="close" size="sm" decorative />
-            Clear filters
-          </ModusWcButton>
-        )}
+      <div className="flex flex-wrap items-center gap-2">
+        <ModusWcIcon name="people_group" size="sm" decorative />
+        <h3 className="text-sm font-semibold text-secondary-800">Select Employees</h3>
+        <ModusWcChip
+          label={`${selectedIds.length} selected`}
+          size="sm"
+          variant="filled"
+        />
       </div>
 
       <div className="flex flex-col gap-2 rounded-md border border-secondary-200 bg-white p-3">
@@ -282,10 +274,6 @@ export default function EmployeeSelector({ selectedIds, onChange }) {
         />
 
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-secondary-500">
-            <ModusWcIcon name="filter_list" size="sm" decorative />
-            <span className="uppercase tracking-wide">Filters</span>
-          </div>
           <FilterMultiSelect
             label="Union"
             options={UNIONS}
@@ -316,6 +304,17 @@ export default function EmployeeSelector({ selectedIds, onChange }) {
             value={employmentStatuses}
             onChange={setEmploymentStatuses}
           />
+          {activeFilters > 0 && (
+            <ModusWcButton
+              variant="borderless"
+              color="tertiary"
+              size="sm"
+              onButtonClick={clearAll}
+            >
+              <ModusWcIcon name="close" size="sm" decorative />
+              Clear filters
+            </ModusWcButton>
+          )}
         </div>
       </div>
 
