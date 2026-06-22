@@ -42,6 +42,13 @@ export const ROLES = [
   'Safety Officer',
   'Admin Assistant',
 ]
+export const EMPLOYMENT_STATUSES = [
+  'Full-Time',
+  'Part-Time',
+  'Contract',
+  'Seasonal',
+  'Temporary',
+]
 
 const firstNames = [
   'Sara', 'John', 'Maria', 'David', 'Aisha', 'Ethan', 'Olivia', 'Noah',
@@ -76,6 +83,7 @@ export const EMPLOYEES = Array.from({ length: 36 }, (_, i) => {
     department: pick(DEPARTMENTS, i + 2),
     costCenter: pick(COST_CENTERS, i + 3),
     union: pick(UNIONS, i + 4),
+    employmentStatus: pick(EMPLOYMENT_STATUSES, i * 2 + 1),
     email: `${first.toLowerCase()}.${last.toLowerCase()}@traqspera.com`,
   }
 })

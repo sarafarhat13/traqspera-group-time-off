@@ -13,6 +13,7 @@ import {
   DEPARTMENTS,
   COST_CENTERS,
   ROLES,
+  EMPLOYMENT_STATUSES,
 } from '../data/mockData'
 
 function FilterMultiSelect({ label, options, value, onChange }) {
@@ -166,6 +167,7 @@ export default function EmployeeSelector({ selectedIds, onChange }) {
   const [departments, setDepartments] = useState([])
   const [costCenters, setCostCenters] = useState([])
   const [roles, setRoles] = useState([])
+  const [employmentStatuses, setEmploymentStatuses] = useState([])
   const [sort, setSort] = useState({ column: 'name', direction: 'asc' })
 
   const filtered = useMemo(() => {
@@ -178,6 +180,12 @@ export default function EmployeeSelector({ selectedIds, onChange }) {
       if (departments.length && !departments.includes(e.department)) return false
       if (costCenters.length && !costCenters.includes(e.costCenter)) return false
       if (roles.length && !roles.includes(e.role)) return false
+      if (
+        employmentStatuses.length &&
+        !employmentStatuses.includes(e.employmentStatus)
+      ) {
+        return false
+      }
       return true
     })
 
@@ -190,7 +198,7 @@ export default function EmployeeSelector({ selectedIds, onChange }) {
       return va.localeCompare(vb)
     })
     return sort.direction === 'desc' ? sorted.reverse() : sorted
-  }, [search, unions, departments, costCenters, roles, sort])
+  }, [search, unions, departments, costCenters, roles, employmentStatuses, sort])
 
   const allFilteredSelected =
     filtered.length > 0 && filtered.every((e) => selectedIds.includes(e.id))
@@ -230,11 +238,16 @@ export default function EmployeeSelector({ selectedIds, onChange }) {
     setDepartments([])
     setCostCenters([])
     setRoles([])
+    setEmploymentStatuses([])
     setSearch('')
   }
 
   const activeFilters =
-    unions.length + departments.length + costCenters.length + roles.length
+    unions.length +
+    departments.length +
+    costCenters.length +
+    roles.length +
+    employmentStatuses.length
 
   return (
     <div className="grid h-full grid-rows-[auto_auto_1fr] gap-3">
@@ -296,6 +309,12 @@ export default function EmployeeSelector({ selectedIds, onChange }) {
             options={ROLES}
             value={roles}
             onChange={setRoles}
+          />
+          <FilterMultiSelect
+            label="Employment Status"
+            options={EMPLOYMENT_STATUSES}
+            value={employmentStatuses}
+            onChange={setEmploymentStatuses}
           />
         </div>
       </div>
