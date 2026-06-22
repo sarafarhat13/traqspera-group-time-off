@@ -168,7 +168,7 @@ export default function GroupRequestModal({ open, onClose, onSubmit }) {
           <ModusWcButton
             shape="square"
             variant="borderless"
-            color="secondary"
+            color="tertiary"
             aria-label="Close"
             onButtonClick={handleClose}
           >
