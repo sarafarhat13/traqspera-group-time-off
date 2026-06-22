@@ -1,11 +1,46 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import {
   ModusWcCard,
-  ModusWcButtonGroup,
   ModusWcButton,
   ModusWcIcon,
 } from '@trimble-oss/moduswebcomponents-react'
 import { CALENDAR_EVENTS, BLOCK_EVENTS } from '../data/mockData'
+
+const VIEW_MODES = [
+  { id: 'month', label: 'Month' },
+  { id: 'week', label: 'Week' },
+  { id: 'day', label: 'Day' },
+]
+
+function ViewModeSegmented({ value, onChange }) {
+  return (
+    <div
+      role="tablist"
+      aria-label="Calendar view mode"
+      className="inline-flex items-center gap-1 rounded-lg bg-secondary-100 p-1"
+    >
+      {VIEW_MODES.map((mode) => {
+        const selected = value === mode.id
+        return (
+          <button
+            key={mode.id}
+            type="button"
+            role="tab"
+            aria-selected={selected}
+            onClick={() => onChange(mode.id)}
+            className={`rounded-md px-3 py-1 text-sm font-medium transition-colors ${
+              selected
+                ? 'bg-white text-secondary-900 shadow-sm ring-1 ring-secondary-200'
+                : 'text-secondary-600 hover:text-secondary-900'
+            }`}
+          >
+            {mode.label}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
 
 const STATUS_STYLES = {
   pending: 'bg-warning-400 text-secondary-900',
@@ -58,6 +93,7 @@ function buildMonthGrid(year, month) {
 export default function CalendarView() {
   const year = 2026
   const month = 3
+  const [viewMode, setViewMode] = useState('month')
 
   const cells = useMemo(() => buildMonthGrid(year, month), [year, month])
 
@@ -89,11 +125,7 @@ export default function CalendarView() {
             </ModusWcButton>
           </div>
           <div className="text-lg font-semibold text-secondary-800">April 2026</div>
-          <ModusWcButtonGroup variant="outlined" color="primary" selectionType="single">
-            <ModusWcButton pressed>Month</ModusWcButton>
-            <ModusWcButton>Week</ModusWcButton>
-            <ModusWcButton>Day</ModusWcButton>
-          </ModusWcButtonGroup>
+          <ViewModeSegmented value={viewMode} onChange={setViewMode} />
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-secondary-200 px-4 py-2 text-xs">
