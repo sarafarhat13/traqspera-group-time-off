@@ -1,5 +1,10 @@
 import { useMemo } from 'react'
-import { AlertTriangle, CalendarDays } from 'lucide-react'
+import {
+  ModusWcCard,
+  ModusWcButtonGroup,
+  ModusWcButton,
+  ModusWcIcon,
+} from '@trimble-oss/moduswebcomponents-react'
 import { CALENDAR_EVENTS, BLOCK_EVENTS } from '../data/mockData'
 
 const STATUS_STYLES = {
@@ -24,10 +29,9 @@ function fmt(year, month, day) { return `${year}-${pad(month + 1)}-${pad(day)}` 
 
 function buildMonthGrid(year, month) {
   const first = new Date(year, month, 1)
-  const startWeekday = first.getDay() // 0 = Sun
+  const startWeekday = first.getDay()
   const daysInMonth = new Date(year, month + 1, 0).getDate()
   const prevMonthDays = new Date(year, month, 0).getDate()
-  // Always render 6 weeks (42 cells) for a stable grid
   const cells = []
   for (let i = 0; i < 42; i++) {
     const offset = i - startWeekday
@@ -53,7 +57,7 @@ function buildMonthGrid(year, month) {
 
 export default function CalendarView() {
   const year = 2026
-  const month = 3 // April (0-indexed)
+  const month = 3
 
   const cells = useMemo(() => buildMonthGrid(year, month), [year, month])
 
@@ -70,103 +74,89 @@ export default function CalendarView() {
   for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7))
 
   return (
-    <section className="card flex flex-1 flex-col overflow-hidden">
-      {/* Toolbar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-secondary-200 px-4 py-3">
-        <div className="flex items-center gap-2">
-          <button className="rounded-md border border-secondary-300 bg-white px-3 py-1.5 text-sm font-medium text-secondary-800 hover:bg-secondary-50">
-            Today
-          </button>
-          <button className="rounded-md border border-secondary-300 bg-white px-3 py-1.5 text-sm font-medium text-secondary-800 hover:bg-secondary-50">
-            Back
-          </button>
-          <button className="rounded-md border border-secondary-300 bg-white px-3 py-1.5 text-sm font-medium text-secondary-800 hover:bg-secondary-50">
-            Next
-          </button>
+    <ModusWcCard bordered customClass="calendar-card">
+      <div className="-m-3 flex flex-1 flex-col overflow-hidden">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-secondary-200 px-4 py-3">
+          <ModusWcButtonGroup variant="outlined" color="secondary">
+            <ModusWcButton size="sm">Today</ModusWcButton>
+            <ModusWcButton size="sm" aria-label="Previous month">
+              <ModusWcIcon name="chevron_left" size="sm" decorative />
+            </ModusWcButton>
+            <ModusWcButton size="sm" aria-label="Next month">
+              <ModusWcIcon name="chevron_right" size="sm" decorative />
+            </ModusWcButton>
+          </ModusWcButtonGroup>
+          <div className="text-lg font-semibold text-secondary-800">April 2026</div>
+          <ModusWcButtonGroup variant="outlined" color="primary" selectionType="single">
+            <ModusWcButton pressed>Month</ModusWcButton>
+            <ModusWcButton>Week</ModusWcButton>
+            <ModusWcButton>Day</ModusWcButton>
+          </ModusWcButtonGroup>
         </div>
-        <div className="text-lg font-semibold text-secondary-800">April 2026</div>
-        <div className="flex items-center gap-1 rounded-md bg-secondary-100 p-1">
-          {['Month', 'Week', 'Day'].map((label, idx) => (
-            <button
-              key={label}
-              type="button"
-              className={`rounded-md px-3 py-1 text-sm font-medium transition ${
-                idx === 0
-                  ? 'bg-white text-secondary-900 shadow-xs'
-                  : 'text-secondary-700 hover:bg-white'
-              }`}
-            >
-              {label}
-            </button>
+
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-secondary-200 px-4 py-2 text-xs">
+          <span className="italic text-secondary-500">
+            Click and drag to select days for a new request
+          </span>
+          <div className="flex flex-wrap items-center gap-3">
+            {LEGEND.map((l) => (
+              <span key={l.id} className="inline-flex items-center gap-1.5 text-secondary-600">
+                <span className={`h-2.5 w-2.5 rounded-full ${l.dot}`} />
+                {l.label}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-7 border-b border-secondary-200 bg-secondary-50 text-center text-xs font-semibold uppercase tracking-wide text-secondary-600">
+          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
+            <div key={d} className="py-2">{d}</div>
           ))}
         </div>
-      </div>
 
-      {/* Helper + legend */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-secondary-200 px-4 py-2 text-xs">
-        <span className="italic text-secondary-500">
-          Click and drag to select days for a new request
-        </span>
-        <div className="flex flex-wrap items-center gap-3">
-          {LEGEND.map((l) => (
-            <span key={l.id} className="inline-flex items-center gap-1.5 text-secondary-600">
-              <span className={`h-2.5 w-2.5 rounded-full ${l.dot}`} />
-              {l.label}
-            </span>
-          ))}
-        </div>
-      </div>
-
-      {/* Day-of-week header */}
-      <div className="grid grid-cols-7 border-b border-secondary-200 bg-secondary-50 text-center text-xs font-semibold uppercase tracking-wide text-secondary-600">
-        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
-          <div key={d} className="py-2">{d}</div>
-        ))}
-      </div>
-
-      {/* Calendar grid */}
-      <div className="grid flex-1 grid-cols-7 grid-rows-6">
-        {weeks.flatMap((week, wi) =>
-          week.map((cell, di) => {
-            const events = cell.iso ? eventsByDate[cell.iso] ?? [] : []
-            return (
-              <div
-                key={cell.key}
-                className={`flex min-h-[100px] flex-col gap-1 border-b border-r border-secondary-200 p-1.5 ${
-                  cell.currentMonth ? 'bg-white' : 'bg-secondary-50/60'
-                } ${di === 6 ? 'border-r-0' : ''} ${wi === 5 ? 'border-b-0' : ''}`}
-              >
+        <div className="grid flex-1 grid-cols-7 grid-rows-6">
+          {weeks.flatMap((week, wi) =>
+            week.map((cell, di) => {
+              const events = cell.iso ? eventsByDate[cell.iso] ?? [] : []
+              return (
                 <div
-                  className={`text-xs font-semibold ${
-                    cell.currentMonth ? 'text-secondary-700' : 'text-secondary-400'
-                  }`}
+                  key={cell.key}
+                  className={`flex min-h-[100px] flex-col gap-1 border-b border-r border-secondary-200 p-1.5 ${
+                    cell.currentMonth ? 'bg-white' : 'bg-secondary-50/60'
+                  } ${di === 6 ? 'border-r-0' : ''} ${wi === 5 ? 'border-b-0' : ''}`}
                 >
-                  {String(cell.day).padStart(2, '0')}
+                  <div
+                    className={`text-xs font-semibold ${
+                      cell.currentMonth ? 'text-secondary-700' : 'text-secondary-400'
+                    }`}
+                  >
+                    {String(cell.day).padStart(2, '0')}
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    {events.map((e, i) => (
+                      <div
+                        key={`${cell.key}-${i}`}
+                        className={`flex items-center gap-1 truncate rounded px-1.5 py-0.5 text-[10px] font-medium leading-tight ${
+                          STATUS_STYLES[e.status] ?? 'bg-secondary-200 text-secondary-800'
+                        }`}
+                        title={e.label}
+                      >
+                        {e.status === 'declined' && (
+                          <ModusWcIcon name="warning" size="sm" decorative customClass="text-[10px]" />
+                        )}
+                        {e.status === 'holiday' && (
+                          <ModusWcIcon name="calendar" size="sm" decorative customClass="text-[10px]" />
+                        )}
+                        <span className="truncate">{e.label}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div className="flex flex-col gap-1">
-                  {events.map((e, i) => (
-                    <div
-                      key={`${cell.key}-${i}`}
-                      className={`flex items-center gap-1 truncate rounded px-1.5 py-0.5 text-[10px] font-medium leading-tight ${
-                        STATUS_STYLES[e.status] ?? 'bg-secondary-200 text-secondary-800'
-                      }`}
-                      title={e.label}
-                    >
-                      {e.status === 'declined' && (
-                        <AlertTriangle className="h-3 w-3 shrink-0" />
-                      )}
-                      {e.status === 'holiday' && (
-                        <CalendarDays className="h-3 w-3 shrink-0" />
-                      )}
-                      <span className="truncate">{e.label}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )
-          })
-        )}
+              )
+            })
+          )}
+        </div>
       </div>
-    </section>
+    </ModusWcCard>
   )
 }

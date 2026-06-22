@@ -1,5 +1,10 @@
 import { useState } from 'react'
-import { Settings as SettingsIcon, Download } from 'lucide-react'
+import {
+  ModusWcButton,
+  ModusWcIcon,
+  ModusWcToast,
+  ModusWcAlert,
+} from '@trimble-oss/moduswebcomponents-react'
 import BalanceCards from './BalanceCards'
 import FilterPanel from './FilterPanel'
 import ViewToggle from './ViewToggle'
@@ -27,23 +32,21 @@ export default function TimeOffPage() {
 
   return (
     <main className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-secondary-50">
-      {/* Page header */}
       <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6">
         <h1 className="text-xl font-semibold text-secondary-900">Time Off Requests</h1>
         <div className="flex flex-wrap items-center gap-2">
-          <button type="button" className="btn-secondary">
-            <SettingsIcon className="h-4 w-4" />
+          <ModusWcButton variant="outlined" color="secondary" size="md">
+            <ModusWcIcon name="settings" size="sm" decorative />
             Time Off Settings
-          </button>
-          <button type="button" className="btn-secondary">
-            <Download className="h-4 w-4" />
+          </ModusWcButton>
+          <ModusWcButton variant="outlined" color="secondary" size="md">
+            <ModusWcIcon name="download" size="sm" decorative />
             Export CSV
-          </button>
+          </ModusWcButton>
           <AddRequestMenu onSelect={handleAdd} />
         </div>
       </div>
 
-      {/* Page body */}
       <div className="grid flex-1 grid-cols-1 gap-4 px-4 pb-6 sm:px-6 lg:grid-cols-[260px_1fr]">
         <div className="space-y-4">
           <ViewToggle value={view} onChange={setView} />
@@ -55,14 +58,12 @@ export default function TimeOffPage() {
         </div>
       </div>
 
-      {/* Toast */}
       {toast && (
-        <div className="fixed bottom-6 right-6 z-30 animate-slideUp rounded-lg bg-secondary-900 px-4 py-2 text-sm text-white shadow-lg">
-          {toast}
-        </div>
+        <ModusWcToast position="bottom-end" customClass="z-30">
+          <ModusWcAlert alertTitle={toast} variant="info" />
+        </ModusWcToast>
       )}
 
-      {/* Full-page Group Request modal */}
       <GroupRequestModal
         open={groupOpen}
         onClose={() => setGroupOpen(false)}

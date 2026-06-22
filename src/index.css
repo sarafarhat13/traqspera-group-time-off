@@ -13,46 +13,9 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
-  /* Inter font via Google Fonts */
+  /* Inter font via Google Fonts (Modus also uses Open Sans by default; we
+     load Inter alongside as a friendly secondary face) */
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-}
-
-@layer components {
-  .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-all duration-150
-           focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60;
-  }
-  .btn-primary {
-    @apply btn bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800 shadow-xs;
-  }
-  .btn-secondary {
-    @apply btn border border-primary-300 bg-white text-primary-700 hover:bg-primary-50;
-  }
-  .btn-ghost {
-    @apply btn bg-transparent text-secondary-700 hover:bg-secondary-100;
-  }
-  .btn-danger {
-    @apply btn bg-danger-600 text-white hover:bg-danger-700;
-  }
-  .input {
-    @apply block w-full rounded-md border border-secondary-300 bg-white px-3 py-2 text-sm text-secondary-900 placeholder-secondary-400
-           transition focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20;
-  }
-  .select {
-    @apply input pr-9 appearance-none bg-no-repeat;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/></svg>");
-    background-position: right 10px center;
-    background-size: 16px 16px;
-  }
-  .label {
-    @apply mb-1.5 block text-xs font-medium text-secondary-700;
-  }
-  .card {
-    @apply rounded-lg border border-secondary-200 bg-white shadow-xs;
-  }
-  .chip {
-    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium;
-  }
 }
 
 /* Hide scrollbar styling helpers */
@@ -66,4 +29,43 @@
 }
 .scrollbar-thin::-webkit-scrollbar-track {
   background-color: transparent;
+}
+
+/* Layout glue for Modus components that Tailwind layout classes can't reach
+   directly (the components live in shadow DOM but the host element accepts
+   layout styling). */
+modus-wc-navbar.traqspera-navbar {
+  display: block;
+  position: relative;
+  z-index: 20;
+}
+modus-wc-side-navigation.traqspera-sidenav {
+  position: relative;
+  z-index: 10;
+  height: 100%;
+  align-self: flex-start;
+}
+modus-wc-button-group {
+  display: inline-flex;
+}
+modus-wc-card.balance-card,
+modus-wc-card.view-toggle-card,
+modus-wc-card.filter-panel,
+modus-wc-card.calendar-card,
+modus-wc-card.request-form-card,
+modus-wc-card.employee-card,
+modus-wc-card.summary-card,
+modus-wc-card.success-card {
+  display: block;
+}
+modus-wc-card.calendar-card {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+modus-wc-card.employee-card {
+  min-height: 0;
+}
+.section-title-icon {
+  color: var(--modus-wc-color-primary, #0063a3);
 }

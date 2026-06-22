@@ -13,7 +13,9 @@
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
-    "lucide-react": "^0.475.0",
+    "@trimble-oss/modus-icons": "1.21.0",
+    "@trimble-oss/moduswebcomponents": "1.8.0",
+    "@trimble-oss/moduswebcomponents-react": "1.8.0-react19",
     "react": "^19.2.6",
     "react-dom": "^19.2.6"
   },

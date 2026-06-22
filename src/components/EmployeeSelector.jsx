@@ -1,5 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Search, X, Users, CheckCircle2, SlidersHorizontal } from 'lucide-react'
+import {
+  ModusWcTextInput,
+  ModusWcCheckbox,
+  ModusWcButton,
+  ModusWcIcon,
+  ModusWcChip,
+  ModusWcAvatar,
+} from '@trimble-oss/moduswebcomponents-react'
 import {
   EMPLOYEES,
   UNIONS,
@@ -47,7 +54,7 @@ function FilterMultiSelect({ label, options, value, onChange }) {
         aria-expanded={open}
         className={`flex w-full items-center justify-between gap-2 rounded-md border bg-white px-3 py-2 text-sm font-medium transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1 sm:w-auto ${
           value.length > 0
-            ? 'border-primary-400 text-primary-700'
+            ? 'border-primary-500 text-primary-700'
             : 'border-secondary-300 text-secondary-700 hover:bg-secondary-50'
         }`}
       >
@@ -59,33 +66,34 @@ function FilterMultiSelect({ label, options, value, onChange }) {
             </span>
           )}
         </span>
-        <span
-          className={`text-xs text-secondary-400 transition ${
-            open ? 'rotate-180' : ''
-          }`}
-        >
-          ▾
-        </span>
+        <ModusWcIcon
+          name={open ? 'expand_less' : 'expand_more'}
+          size="sm"
+          decorative
+        />
       </button>
       {open && (
         <div className="absolute left-0 z-20 mt-1 w-56 rounded-md border border-secondary-200 bg-white shadow-lg">
           <div className="border-b border-secondary-100 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-secondary-500">
             {label}
           </div>
-          <div className="max-h-56 overflow-y-auto scrollbar-thin px-2 py-2">
+          <div className="max-h-56 overflow-y-auto scrollbar-thin px-2 py-2 space-y-1">
             {options.map((opt) => (
-              <label
+              <div
                 key={opt}
-                className="flex cursor-pointer items-center gap-2 rounded px-1.5 py-1 text-sm text-secondary-700 hover:bg-secondary-50"
+                className="flex cursor-pointer items-center gap-2 rounded px-1.5 py-1 hover:bg-secondary-50"
+                onClick={() => toggle(opt)}
               >
-                <input
-                  type="checkbox"
-                  checked={value.includes(opt)}
-                  onChange={() => toggle(opt)}
-                  className="h-4 w-4 rounded border-secondary-300 text-primary-600 focus:ring-primary-500"
+                <ModusWcCheckbox
+                  value={value.includes(opt)}
+                  onInputChange={(e) => {
+                    e.stopPropagation?.()
+                    toggle(opt)
+                  }}
+                  aria-label={opt}
                 />
-                <span className="truncate">{opt}</span>
-              </label>
+                <span className="truncate text-sm text-secondary-700">{opt}</span>
+              </div>
             ))}
           </div>
           {value.length > 0 && (
@@ -163,55 +171,55 @@ export default function EmployeeSelector({ selectedIds, onChange }) {
 
   return (
     <div className="grid h-full grid-rows-[auto_auto_1fr] gap-3">
-      {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <Users className="h-4 w-4 text-secondary-500" />
+          <ModusWcIcon name="people_group" size="sm" decorative />
           <h3 className="text-sm font-semibold text-secondary-800">Select Employees</h3>
-          <span className="rounded-full bg-secondary-100 px-2 py-0.5 text-xs font-medium text-secondary-700">
-            {selectedIds.length} selected
-          </span>
+          <ModusWcChip
+            label={`${selectedIds.length} selected`}
+            size="sm"
+            variant="filled"
+          />
         </div>
         {activeFilters > 0 && (
-          <button
-            type="button"
-            onClick={clearAll}
-            className="inline-flex items-center gap-1 text-xs font-medium text-primary-700 hover:text-primary-800"
-          >
-            <X className="h-3 w-3" /> Clear filters
-          </button>
+          <ModusWcButton variant="borderless" color="secondary" size="sm" onButtonClick={clearAll}>
+            <ModusWcIcon name="close" size="sm" decorative />
+            Clear filters
+          </ModusWcButton>
         )}
       </div>
 
-      {/* Filter bar (search + dropdown filters) above the table */}
-      <div className="card flex flex-col gap-2 p-3">
+      <div className="flex flex-col gap-2 rounded-md border border-secondary-200 bg-white p-3">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-          <div className="relative flex-1">
-            <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-secondary-400" />
-            <input
+          <div className="flex-1">
+            <ModusWcTextInput
               type="text"
+              includeSearch
+              includeClear
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by name or employee #"
-              className="input pl-9"
               aria-label="Search employees"
+              onInputChange={(e) => setSearch(e.detail?.target?.value ?? '')}
+              onClearClick={() => setSearch('')}
             />
           </div>
-          <button
-            type="button"
-            onClick={selectAllFiltered}
-            className="btn-ghost whitespace-nowrap text-xs sm:ml-auto"
+          <ModusWcButton
+            variant="borderless"
+            color="secondary"
+            size="sm"
             disabled={filtered.length === 0}
+            onButtonClick={selectAllFiltered}
+            customClass="sm:ml-auto"
           >
             {allFilteredSelected ? 'Deselect all' : 'Select all'}
             <span className="ml-1 text-secondary-400">({filtered.length})</span>
-          </button>
+          </ModusWcButton>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-secondary-500">
-            <SlidersHorizontal className="h-3.5 w-3.5" />
-            Filters
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-secondary-500">
+            <ModusWcIcon name="filter_list" size="sm" decorative />
+            <span className="uppercase tracking-wide">Filters</span>
           </div>
           <FilterMultiSelect
             label="Union"
@@ -240,8 +248,7 @@ export default function EmployeeSelector({ selectedIds, onChange }) {
         </div>
       </div>
 
-      {/* Employee list */}
-      <div className="card flex min-h-0 flex-col overflow-hidden">
+      <div className="flex min-h-0 flex-col overflow-hidden rounded-md border border-secondary-200 bg-white">
         <div className="flex-1 overflow-y-auto scrollbar-thin">
           {filtered.length === 0 ? (
             <div className="flex h-full items-center justify-center p-8 text-sm text-secondary-500">
@@ -253,20 +260,25 @@ export default function EmployeeSelector({ selectedIds, onChange }) {
                 const checked = selectedIds.includes(emp.id)
                 return (
                   <li key={emp.id}>
-                    <label
+                    <div
                       className={`flex cursor-pointer items-center gap-3 px-3 py-2 transition ${
                         checked ? 'bg-primary-50/60' : 'hover:bg-secondary-50'
                       }`}
+                      onClick={() => toggleEmployee(emp.id)}
                     >
-                      <input
-                        type="checkbox"
-                        checked={checked}
-                        onChange={() => toggleEmployee(emp.id)}
-                        className="h-4 w-4 rounded border-secondary-300 text-primary-600 focus:ring-primary-500"
+                      <ModusWcCheckbox
+                        value={checked}
+                        aria-label={`Select ${emp.name}`}
+                        onInputChange={(e) => {
+                          e.stopPropagation?.()
+                          toggleEmployee(emp.id)
+                        }}
                       />
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-secondary-200 text-xs font-semibold text-secondary-700">
-                        {emp.initials}
-                      </div>
+                      <ModusWcAvatar
+                        alt={emp.name}
+                        size="sm"
+                        shape="circle"
+                      />
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
                           <span className="truncate text-sm font-medium text-secondary-900">
@@ -284,9 +296,14 @@ export default function EmployeeSelector({ selectedIds, onChange }) {
                         {emp.union}
                       </span>
                       {checked && (
-                        <CheckCircle2 className="h-4 w-4 shrink-0 text-primary-600" />
+                        <ModusWcIcon
+                          name="check_circle"
+                          size="sm"
+                          decorative
+                          customClass="text-primary-600"
+                        />
                       )}
-                    </label>
+                    </div>
                   </li>
                 )
               })}

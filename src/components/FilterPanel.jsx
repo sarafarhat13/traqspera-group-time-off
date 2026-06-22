@@ -1,73 +1,115 @@
 import { useState } from 'react'
-import { Calendar as CalendarIcon, ChevronDown, ChevronUp } from 'lucide-react'
+import {
+  ModusWcCard,
+  ModusWcDate,
+  ModusWcSelect,
+  ModusWcIcon,
+  ModusWcButton,
+} from '@trimble-oss/moduswebcomponents-react'
+
+const EMPLOYEE_OPTIONS = [
+  { label: 'All employees', value: '' },
+  { label: 'Sara Farhat', value: 'sara' },
+  { label: 'John Smith', value: 'john' },
+]
+
+const STATUS_OPTIONS = [
+  { label: 'Any status', value: '' },
+  { label: 'Pending', value: 'pending' },
+  { label: 'Approved', value: 'approved' },
+  { label: 'Declined', value: 'declined' },
+]
+
+const TYPE_OPTIONS = [
+  { label: 'All types', value: '' },
+  { label: 'Paid Time Off', value: 'pto' },
+  { label: 'Sick Day', value: 'sick' },
+  { label: 'Vacation', value: 'vacation' },
+  { label: 'Holiday', value: 'holiday' },
+]
+
+const APPROVER_OPTIONS = [
+  { label: 'Anyone', value: '' },
+  { label: 'Alex Morgan', value: 'alex' },
+  { label: 'Priya Patel', value: 'priya' },
+]
 
 export default function FilterPanel() {
   const [open, setOpen] = useState(true)
+  const [date, setDate] = useState('2026-07-03')
+  const [employee, setEmployee] = useState('')
+  const [status, setStatus] = useState('')
+  const [type, setType] = useState('')
+  const [approver, setApprover] = useState('')
+
   return (
-    <div className="card">
+    <ModusWcCard bordered customClass="filter-panel">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between rounded-t-lg border-b border-secondary-200 px-4 py-2.5 text-left text-sm font-semibold text-secondary-800 hover:bg-secondary-50"
+        className="-m-3 mb-3 flex w-[calc(100%+1.5rem)] items-center justify-between border-b border-secondary-200 px-4 py-2.5 text-left text-sm font-semibold text-secondary-800 hover:bg-secondary-50"
       >
         <span>Filter</span>
-        {open ? (
-          <ChevronUp className="h-4 w-4 text-secondary-500" />
-        ) : (
-          <ChevronDown className="h-4 w-4 text-secondary-500" />
-        )}
+        <ModusWcIcon
+          name={open ? 'expand_less' : 'expand_more'}
+          size="sm"
+          decorative
+        />
       </button>
       {open && (
-        <div className="space-y-4 px-4 py-4">
-          <div>
-            <label className="label">Date Range</label>
-            <div className="relative">
-              <input
-                type="text"
-                className="input pr-9"
-                defaultValue="07/03/2026"
-                aria-label="Date range"
-              />
-              <CalendarIcon className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-secondary-400" />
-            </div>
-          </div>
-          <div>
-            <label className="label">Employee</label>
-            <select className="select" defaultValue="">
-              <option value="">All employees</option>
-              <option>Sara Farhat</option>
-              <option>John Smith</option>
-            </select>
-          </div>
-          <div>
-            <label className="label">Status</label>
-            <select className="select" defaultValue="">
-              <option value="">Any status</option>
-              <option>Pending</option>
-              <option>Approved</option>
-              <option>Declined</option>
-            </select>
-          </div>
-          <div>
-            <label className="label">Type</label>
-            <select className="select" defaultValue="">
-              <option value="">All types</option>
-              <option>Paid Time Off</option>
-              <option>Sick Day</option>
-              <option>Vacation</option>
-              <option>Holiday</option>
-            </select>
-          </div>
-          <div>
-            <label className="label">Requested Approver</label>
-            <select className="select" defaultValue="">
-              <option value="">Anyone</option>
-              <option>Alex Morgan</option>
-              <option>Priya Patel</option>
-            </select>
-          </div>
+        <div className="space-y-3">
+          <ModusWcDate
+            label="Date Range"
+            size="md"
+            value={date}
+            onInputChange={(e) => setDate(e.detail?.target?.value ?? '')}
+          />
+          <ModusWcSelect
+            label="Employee"
+            size="md"
+            options={EMPLOYEE_OPTIONS}
+            value={employee}
+            onInputChange={(e) => setEmployee(e.detail?.target?.value ?? '')}
+          />
+          <ModusWcSelect
+            label="Status"
+            size="md"
+            options={STATUS_OPTIONS}
+            value={status}
+            onInputChange={(e) => setStatus(e.detail?.target?.value ?? '')}
+          />
+          <ModusWcSelect
+            label="Type"
+            size="md"
+            options={TYPE_OPTIONS}
+            value={type}
+            onInputChange={(e) => setType(e.detail?.target?.value ?? '')}
+          />
+          <ModusWcSelect
+            label="Requested Approver"
+            size="md"
+            options={APPROVER_OPTIONS}
+            value={approver}
+            onInputChange={(e) => setApprover(e.detail?.target?.value ?? '')}
+          />
+          <ModusWcButton
+            variant="outlined"
+            color="secondary"
+            size="sm"
+            fullWidth
+            onButtonClick={() => {
+              setDate('')
+              setEmployee('')
+              setStatus('')
+              setType('')
+              setApprover('')
+            }}
+          >
+            <ModusWcIcon name="filter_off" size="sm" decorative />
+            Clear filters
+          </ModusWcButton>
         </div>
       )}
-    </div>
+    </ModusWcCard>
   )
 }
