@@ -8,7 +8,7 @@ import {
 export default function ViewToggle({ value = 'calendar', onChange }) {
   return (
     <ModusWcCard bordered customClass="view-toggle-card">
-      <div className="-m-3 mb-3 flex items-center gap-2 rounded-t-md bg-primary-700 px-4 py-2 text-sm font-semibold text-white">
+      <div className="-m-3 mb-3 flex items-center gap-2 rounded-t-md bg-traqspera-navy px-4 py-2 text-sm font-semibold text-white">
         View
       </div>
       <ModusWcButtonGroup

@@ -47,7 +47,7 @@ export default function FilterPanel() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="-m-3 mb-3 flex w-[calc(100%+1.5rem)] items-center justify-between border-b border-secondary-200 px-4 py-2.5 text-left text-sm font-semibold text-secondary-800 hover:bg-secondary-50"
+        className="-m-3 mb-3 flex w-[calc(100%+1.5rem)] items-center justify-between rounded-t-md bg-traqspera-navy px-4 py-2 text-left text-sm font-semibold text-white hover:bg-traqspera-navyMid"
       >
         <span>Filter</span>
         <ModusWcIcon
@@ -94,7 +94,7 @@ export default function FilterPanel() {
           />
           <ModusWcButton
             variant="outlined"
-            color="secondary"
+            color="primary"
             size="sm"
             fullWidth
             onButtonClick={() => {

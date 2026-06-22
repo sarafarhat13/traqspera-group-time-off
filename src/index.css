@@ -56,6 +56,29 @@ modus-wc-side-navigation .modus-wc-side-navigation {
   top: 0;
   left: 0;
   max-height: 100%;
+  background: #1e293b;
+}
+modus-wc-side-navigation .side-navigation-content {
+  color: #ffffff;
+}
+modus-wc-side-navigation modus-wc-menu .modus-wc-menu {
+  background-color: transparent;
+}
+modus-wc-side-navigation modus-wc-menu-item .modus-wc-menu-item,
+modus-wc-side-navigation modus-wc-menu-item .modus-wc-menu-item button {
+  color: #cbd5e1;
+}
+modus-wc-side-navigation modus-wc-menu-item .modus-wc-menu-item button:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+modus-wc-side-navigation modus-wc-menu-item .modus-wc-menu-item.modus-wc-menu-item-active button,
+modus-wc-side-navigation modus-wc-menu-item .modus-wc-menu-item.modus-wc-menu-item-selected button {
+  background-color: #0063a3;
+  color: #ffffff;
+}
+modus-wc-side-navigation modus-wc-icon {
+  color: inherit;
 }
 modus-wc-button-group {
   display: inline-flex;

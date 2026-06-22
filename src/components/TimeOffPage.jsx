@@ -35,11 +35,11 @@ export default function TimeOffPage() {
       <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6">
         <h1 className="text-xl font-semibold text-secondary-900">Time Off Requests</h1>
         <div className="flex flex-wrap items-center gap-2">
-          <ModusWcButton variant="outlined" color="secondary" size="md">
+          <ModusWcButton variant="outlined" color="primary" size="md">
             <ModusWcIcon name="settings" size="sm" decorative />
             Time Off Settings
           </ModusWcButton>
-          <ModusWcButton variant="outlined" color="secondary" size="md">
+          <ModusWcButton variant="outlined" color="primary" size="md">
             <ModusWcIcon name="download" size="sm" decorative />
             Export CSV
           </ModusWcButton>

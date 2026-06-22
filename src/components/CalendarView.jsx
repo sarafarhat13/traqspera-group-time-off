@@ -77,15 +77,17 @@ export default function CalendarView() {
     <ModusWcCard bordered customClass="calendar-card">
       <div className="-m-3 flex flex-1 flex-col overflow-hidden">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-secondary-200 px-4 py-3">
-          <ModusWcButtonGroup variant="outlined" color="secondary">
-            <ModusWcButton size="sm">Today</ModusWcButton>
-            <ModusWcButton size="sm" aria-label="Previous month">
-              <ModusWcIcon name="chevron_left" size="sm" decorative />
+          <div className="flex items-center gap-2">
+            <ModusWcButton variant="outlined" color="primary" size="sm">
+              Today
             </ModusWcButton>
-            <ModusWcButton size="sm" aria-label="Next month">
-              <ModusWcIcon name="chevron_right" size="sm" decorative />
+            <ModusWcButton variant="outlined" color="primary" size="sm" aria-label="Previous month">
+              Back
             </ModusWcButton>
-          </ModusWcButtonGroup>
+            <ModusWcButton variant="outlined" color="primary" size="sm" aria-label="Next month">
+              Next
+            </ModusWcButton>
+          </div>
           <div className="text-lg font-semibold text-secondary-800">April 2026</div>
           <ModusWcButtonGroup variant="outlined" color="primary" selectionType="single">
             <ModusWcButton pressed>Month</ModusWcButton>
@@ -146,6 +148,9 @@ export default function CalendarView() {
                         )}
                         {e.status === 'holiday' && (
                           <ModusWcIcon name="calendar" size="sm" decorative customClass="text-[10px]" />
+                        )}
+                        {e.status === 'blackout' && (
+                          <span className="flex h-2.5 w-2.5 flex-shrink-0 items-center justify-center rounded-full border border-white" />
                         )}
                         <span className="truncate">{e.label}</span>
                       </div>

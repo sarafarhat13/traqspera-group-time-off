@@ -15,7 +15,7 @@ export default function BalanceCards() {
           const negative = b.hours < 0
           return (
             <ModusWcCard key={b.id} bordered padding="compact" customClass="balance-card">
-              <div className="-m-3 mb-3 flex items-center gap-2 rounded-t-md bg-primary-700 px-4 py-2 text-white">
+              <div className="-m-3 mb-3 flex items-center gap-2 rounded-t-md bg-traqspera-navy px-4 py-2 text-white">
                 <ModusWcIcon name={iconFor(b.icon)} size="sm" decorative />
                 <span className="text-xs font-semibold uppercase tracking-wide">
                   {b.label}
