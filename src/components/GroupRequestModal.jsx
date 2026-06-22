@@ -159,7 +159,7 @@ export default function GroupRequestModal({ open, onClose, onSubmit }) {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <ModusWcButton variant="borderless" color="secondary" onButtonClick={handleClose}>
+          <ModusWcButton variant="borderless" color="tertiary" onButtonClick={handleClose}>
             Cancel
           </ModusWcButton>
           <ModusWcButton color="primary" onButtonClick={handleSubmit}>
@@ -388,7 +388,7 @@ export default function GroupRequestModal({ open, onClose, onSubmit }) {
                   </div>
                 )}
                 <div className="flex shrink-0 items-center gap-2">
-                  <ModusWcButton variant="outlined" color="secondary" onButtonClick={handleClose}>
+                  <ModusWcButton variant="outlined" color="tertiary" onButtonClick={handleClose}>
                     Cancel
                   </ModusWcButton>
                   <ModusWcButton color="primary" onButtonClick={handleSubmit}>
