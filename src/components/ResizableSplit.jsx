@@ -129,7 +129,7 @@ export default function ResizableSplit({
       >
         {collapsed ? null : left}
       </div>
-      <div className="relative flex shrink-0 items-stretch">
+      <div className="relative flex shrink-0 items-stretch px-3">
         <div
           role="separator"
           aria-orientation="vertical"
@@ -142,7 +142,7 @@ export default function ResizableSplit({
           onTouchStart={startDrag}
           onKeyDown={handleKeyDown}
           onDoubleClick={() => setLeftWidth(defaultLeftWidth)}
-          className={`group relative flex w-2.5 shrink-0 select-none items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
+          className={`group relative flex shrink-0 select-none items-center justify-center transition-colors focus:outline-none ${
             collapsed ? 'cursor-default' : 'cursor-col-resize'
           }`}
           title={
@@ -150,29 +150,14 @@ export default function ResizableSplit({
           }
         >
           <span
-            className={`pointer-events-none absolute inset-y-0 left-1/2 w-px -translate-x-1/2 transition-colors ${
+            className={`pointer-events-none absolute inset-y-0 left-1/2 w-0.5 -translate-x-1/2 transition-colors ${
               dragging
                 ? 'bg-primary-500'
-                : 'bg-secondary-200 group-hover:bg-primary-400 group-focus-visible:bg-primary-500'
+                : collapsed
+                  ? 'bg-secondary-200'
+                  : 'bg-secondary-300 group-hover:bg-primary-400'
             }`}
           />
-          {!collapsed && (
-            <span
-              className={`pointer-events-none flex h-12 w-2 flex-col items-center justify-center gap-1 rounded-full transition-colors ${
-                dragging
-                  ? 'bg-primary-500'
-                  : 'bg-secondary-300 group-hover:bg-primary-500'
-              }`}
-              aria-hidden="true"
-            >
-              {[0, 1, 2, 3].map((i) => (
-                <span
-                  key={i}
-                  className="h-1 w-1 rounded-full bg-white/90"
-                />
-              ))}
-            </span>
-          )}
           {dragging && (
             <span
               className="pointer-events-none absolute top-1/2 left-full ml-3 -translate-y-1/2 whitespace-nowrap rounded-md bg-secondary-900 px-2 py-1 text-xs font-medium text-white shadow-lg"
@@ -188,7 +173,7 @@ export default function ResizableSplit({
           aria-label={collapsed ? 'Show filters panel' : 'Hide filters panel'}
           aria-expanded={!collapsed}
           title={collapsed ? 'Show filters panel' : 'Hide filters panel'}
-          className="absolute top-3 -right-3 z-10 flex h-6 w-6 items-center justify-center rounded-full border border-secondary-200 bg-white text-secondary-600 shadow-sm transition-colors hover:border-primary-500 hover:bg-primary-50 hover:text-primary-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+          className="absolute top-1/2 left-1/2 z-10 flex h-12 w-6 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-secondary-300 bg-white text-secondary-600 shadow-md transition-all hover:border-primary-500 hover:bg-primary-600 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
         >
           <ModusWcIcon
             name={collapsed ? 'chevron_right' : 'chevron_left'}
