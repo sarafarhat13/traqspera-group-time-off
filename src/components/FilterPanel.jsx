@@ -92,22 +92,24 @@ export default function FilterPanel() {
             value={approver}
             onInputChange={(e) => setApprover(e.detail?.target?.value ?? '')}
           />
-          <ModusWcButton
-            variant="outlined"
-            color="primary"
-            size="sm"
-            fullWidth
-            onButtonClick={() => {
-              setDate('')
-              setEmployee('')
-              setStatus('')
-              setType('')
-              setApprover('')
-            }}
-          >
-            <ModusWcIcon name="filter_off" size="sm" decorative />
-            Clear filters
-          </ModusWcButton>
+          <div className="pt-3">
+            <ModusWcButton
+              variant="outlined"
+              color="primary"
+              size="sm"
+              fullWidth
+              onButtonClick={() => {
+                setDate('')
+                setEmployee('')
+                setStatus('')
+                setType('')
+                setApprover('')
+              }}
+            >
+              <ModusWcIcon name="filter_off" size="sm" decorative />
+              Clear filters
+            </ModusWcButton>
+          </div>
         </div>
       )}
     </ModusWcCard>
