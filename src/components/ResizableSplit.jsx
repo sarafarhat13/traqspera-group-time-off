@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { ModusWcIcon } from '@trimble-oss/moduswebcomponents-react'
 
 const DEFAULT_MIN = 200
 const DEFAULT_MAX = 520
@@ -9,6 +10,7 @@ export default function ResizableSplit({
   defaultLeftWidth = 260,
   minLeftWidth = DEFAULT_MIN,
   maxLeftWidth = DEFAULT_MAX,
+  collapsedWidth = 0,
   storageKey,
   className = '',
 }) {
@@ -19,22 +21,30 @@ export default function ResizableSplit({
       const saved = window.localStorage.getItem(storageKey)
       const parsed = saved ? Number(saved) : NaN
       if (Number.isFinite(parsed)) {
+        if (parsed === collapsedWidth) return collapsedWidth
         return Math.min(Math.max(parsed, minLeftWidth), maxLeftWidth)
       }
     }
     return defaultLeftWidth
   })
   const [dragging, setDragging] = useState(false)
+  const [lastExpanded, setLastExpanded] = useState(defaultLeftWidth)
+
+  const collapsed = leftWidth === collapsedWidth
 
   useEffect(() => {
     if (!storageKey) return
     window.localStorage.setItem(storageKey, String(Math.round(leftWidth)))
   }, [leftWidth, storageKey])
 
-  const startDrag = useCallback((e) => {
-    e.preventDefault()
-    setDragging(true)
-  }, [])
+  const startDrag = useCallback(
+    (e) => {
+      if (collapsed) return
+      e.preventDefault()
+      setDragging(true)
+    },
+    [collapsed],
+  )
 
   useEffect(() => {
     if (!dragging) return
@@ -78,6 +88,7 @@ export default function ResizableSplit({
   }, [dragging, minLeftWidth, maxLeftWidth])
 
   function handleKeyDown(e) {
+    if (collapsed) return
     const step = e.shiftKey ? 32 : 16
     if (e.key === 'ArrowLeft') {
       e.preventDefault()
@@ -97,34 +108,94 @@ export default function ResizableSplit({
     }
   }
 
+  function toggleCollapsed(e) {
+    e.stopPropagation()
+    if (collapsed) {
+      setLeftWidth(lastExpanded || defaultLeftWidth)
+    } else {
+      setLastExpanded(leftWidth)
+      setLeftWidth(collapsedWidth)
+    }
+  }
+
   return (
-    <div
-      ref={containerRef}
-      className={`flex min-h-0 ${className}`}
-    >
+    <div ref={containerRef} className={`flex min-h-0 ${className}`}>
       <div
         style={{ width: leftWidth, flex: `0 0 ${leftWidth}px` }}
-        className="min-w-0"
-      >
-        {left}
-      </div>
-      <div
-        role="separator"
-        aria-orientation="vertical"
-        aria-label="Resize panels"
-        aria-valuemin={minLeftWidth}
-        aria-valuemax={maxLeftWidth}
-        aria-valuenow={Math.round(leftWidth)}
-        tabIndex={0}
-        onMouseDown={startDrag}
-        onTouchStart={startDrag}
-        onKeyDown={handleKeyDown}
-        onDoubleClick={() => setLeftWidth(defaultLeftWidth)}
-        className={`group relative mx-1 w-1 shrink-0 cursor-col-resize select-none rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
-          dragging ? 'bg-primary-500' : 'bg-secondary-200 hover:bg-primary-400'
+        className={`min-w-0 transition-[width,flex-basis] duration-150 ease-out ${
+          collapsed ? 'overflow-hidden' : ''
         }`}
+        aria-hidden={collapsed ? 'true' : undefined}
       >
-        <span className="pointer-events-none absolute inset-y-0 left-1/2 w-3 -translate-x-1/2" />
+        {collapsed ? null : left}
+      </div>
+      <div className="relative flex shrink-0 items-stretch">
+        <div
+          role="separator"
+          aria-orientation="vertical"
+          aria-label={`Resize filters panel. Current width ${Math.round(leftWidth)} pixels.`}
+          aria-valuemin={minLeftWidth}
+          aria-valuemax={maxLeftWidth}
+          aria-valuenow={Math.round(leftWidth)}
+          tabIndex={0}
+          onMouseDown={startDrag}
+          onTouchStart={startDrag}
+          onKeyDown={handleKeyDown}
+          onDoubleClick={() => setLeftWidth(defaultLeftWidth)}
+          className={`group relative flex w-2.5 shrink-0 select-none items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
+            collapsed ? 'cursor-default' : 'cursor-col-resize'
+          }`}
+          title={
+            collapsed ? 'Filters collapsed' : 'Drag to resize · double-click to reset'
+          }
+        >
+          <span
+            className={`pointer-events-none absolute inset-y-0 left-1/2 w-px -translate-x-1/2 transition-colors ${
+              dragging
+                ? 'bg-primary-500'
+                : 'bg-secondary-200 group-hover:bg-primary-400 group-focus-visible:bg-primary-500'
+            }`}
+          />
+          {!collapsed && (
+            <span
+              className={`pointer-events-none flex h-12 w-2 flex-col items-center justify-center gap-1 rounded-full transition-colors ${
+                dragging
+                  ? 'bg-primary-500'
+                  : 'bg-secondary-300 group-hover:bg-primary-500'
+              }`}
+              aria-hidden="true"
+            >
+              {[0, 1, 2, 3].map((i) => (
+                <span
+                  key={i}
+                  className="h-1 w-1 rounded-full bg-white/90"
+                />
+              ))}
+            </span>
+          )}
+          {dragging && (
+            <span
+              className="pointer-events-none absolute top-1/2 left-full ml-3 -translate-y-1/2 whitespace-nowrap rounded-md bg-secondary-900 px-2 py-1 text-xs font-medium text-white shadow-lg"
+              role="status"
+            >
+              {Math.round(leftWidth)}px
+            </span>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={toggleCollapsed}
+          aria-label={collapsed ? 'Show filters panel' : 'Hide filters panel'}
+          aria-expanded={!collapsed}
+          title={collapsed ? 'Show filters panel' : 'Hide filters panel'}
+          className="absolute top-3 -right-3 z-10 flex h-6 w-6 items-center justify-center rounded-full border border-secondary-200 bg-white text-secondary-600 shadow-sm transition-colors hover:border-primary-500 hover:bg-primary-50 hover:text-primary-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+        >
+          <ModusWcIcon
+            name={collapsed ? 'chevron_right' : 'chevron_left'}
+            size="sm"
+            decorative
+          />
+        </button>
       </div>
       <div className="flex min-w-0 flex-1 flex-col">{right}</div>
     </div>
