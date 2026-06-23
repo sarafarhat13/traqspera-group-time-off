@@ -12,6 +12,8 @@ import CalendarView from './CalendarView'
 import AddRequestMenu from './AddRequestMenu'
 import GroupRequestModal from './GroupRequestModal'
 import PendingRequestModal from './PendingRequestModal'
+import ResizableSplit from './ResizableSplit'
+import useMediaQuery from '../hooks/useMediaQuery'
 import { REQUESTS } from '../data/mockData'
 
 const ACTION_LABEL = {
@@ -26,6 +28,7 @@ export default function TimeOffPage() {
   const [groupOpen, setGroupOpen] = useState(false)
   const [toast, setToast] = useState(null)
   const [activeRequest, setActiveRequest] = useState(null)
+  const isLargeScreen = useMediaQuery('(min-width: 1024px)')
 
   function handleAdd(kind) {
     if (kind === 'group') {
@@ -69,15 +72,39 @@ export default function TimeOffPage() {
         </div>
       </div>
 
-      <div className="grid flex-1 grid-cols-1 gap-4 px-4 pb-6 sm:px-6 lg:grid-cols-[260px_1fr]">
-        <div className="space-y-4">
-          <ViewToggle value={view} onChange={setView} />
-          <FilterPanel />
-        </div>
-        <div className="flex flex-1 flex-col gap-4">
-          <BalanceCards />
-          <CalendarView onEventClick={handleEventClick} />
-        </div>
+      <div className="flex flex-1 flex-col px-4 pb-6 sm:px-6">
+        {isLargeScreen ? (
+          <ResizableSplit
+            className="flex-1"
+            storageKey="traqspera.timeoff.leftWidth"
+            defaultLeftWidth={260}
+            minLeftWidth={220}
+            maxLeftWidth={520}
+            left={
+              <div className="space-y-4 pr-2">
+                <ViewToggle value={view} onChange={setView} />
+                <FilterPanel />
+              </div>
+            }
+            right={
+              <div className="flex flex-1 flex-col gap-4 pl-2">
+                <BalanceCards />
+                <CalendarView onEventClick={handleEventClick} />
+              </div>
+            }
+          />
+        ) : (
+          <div className="flex flex-1 flex-col gap-4">
+            <div className="space-y-4">
+              <ViewToggle value={view} onChange={setView} />
+              <FilterPanel />
+            </div>
+            <div className="flex flex-1 flex-col gap-4">
+              <BalanceCards />
+              <CalendarView onEventClick={handleEventClick} />
+            </div>
+          </div>
+        )}
       </div>
 
       {toast && (
