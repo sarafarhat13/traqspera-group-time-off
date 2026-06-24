@@ -37,6 +37,11 @@ const APPROVER_OPTIONS = APPROVERS.map((a) => ({
   value: a.id,
 }))
 
+const TIME_OFF_TYPE_OPTIONS = TIME_OFF_TYPES.map((t) => ({
+  label: t.label,
+  value: t.id,
+}))
+
 export default function GroupRequestModal({ open, onClose, onSubmit }) {
   const [type, setType] = useState('pto')
   const [dateMode, setDateMode] = useState('range') // 'range' | 'single' | 'multi'
@@ -193,35 +198,12 @@ export default function GroupRequestModal({ open, onClose, onSubmit }) {
           <div className="flex min-h-0 flex-col overflow-hidden rounded-md border border-secondary-200 bg-white">
             <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto scrollbar-thin p-3">
               <SectionTitle icon="tag" title="Type of Time Off" />
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                {TIME_OFF_TYPES.map((t) => {
-                  const active = type === t.id
-                  return (
-                    <button
-                      type="button"
-                      key={t.id}
-                      onClick={() => setType(t.id)}
-                      aria-pressed={active}
-                      className={`flex flex-col items-start gap-1 rounded-md border px-3 py-2.5 text-left text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${
-                        active
-                          ? 'border-primary-700 bg-primary-700 text-white'
-                          : 'border-secondary-300 bg-white text-secondary-900 hover:border-secondary-400 hover:bg-secondary-50'
-                      }`}
-                    >
-                      <span
-                        className={`text-xs font-medium uppercase tracking-wide ${
-                          active ? 'text-primary-100' : 'text-secondary-500'
-                        }`}
-                      >
-                        {active ? 'Selected' : 'Choose'}
-                      </span>
-                      <span className={`font-semibold ${active ? 'text-white' : 'text-secondary-900'}`}>
-                        {t.label}
-                      </span>
-                    </button>
-                  )
-                })}
-              </div>
+              <ModusWcSelect
+                aria-label="Type of Time Off"
+                options={TIME_OFF_TYPE_OPTIONS}
+                value={type}
+                onInputChange={(e) => setType(e.detail?.target?.value ?? '')}
+              />
 
               <Divider />
 
