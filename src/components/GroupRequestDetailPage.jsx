@@ -203,28 +203,8 @@ function Body({ request, onClose, onAction }) {
         </div>
         <div className="flex items-center gap-2">
           <ModusWcButton variant="outlined" color="tertiary" size="md" onButtonClick={onClose}>
-            {canAct ? 'Cancel' : 'Close'}
+            Close
           </ModusWcButton>
-          {canAct && (
-            <>
-              <button
-                type="button"
-                onClick={() => submit('decline')}
-                className="inline-flex items-center gap-2 rounded-md bg-danger-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-danger-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-danger-500 focus-visible:ring-offset-2"
-              >
-                <ModusWcIcon name="thumbs_down" size="sm" decorative />
-                Decline
-              </button>
-              <button
-                type="button"
-                onClick={() => submit('approve')}
-                className="inline-flex items-center gap-2 rounded-md bg-success-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-success-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-success-500 focus-visible:ring-offset-2"
-              >
-                <ModusWcIcon name="thumbs_up" size="sm" decorative />
-                Approve
-              </button>
-            </>
-          )}
         </div>
       </div>
 
@@ -473,12 +453,9 @@ function Body({ request, onClose, onAction }) {
 
                 {canAct && (
                   <div className="mt-5 rounded-md border border-secondary-200 bg-secondary-50 p-3">
-                    <label
-                      htmlFor="approver-comment"
-                      className="mb-1 block text-xs font-semibold uppercase tracking-wide text-secondary-600"
-                    >
-                      Your comment (optional)
-                    </label>
+                    <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-secondary-600">
+                      Your decision
+                    </div>
                     <ModusWcTextarea
                       id="approver-comment"
                       rows={3}
@@ -486,6 +463,24 @@ function Body({ request, onClose, onAction }) {
                       placeholder={`Notes for ${request.requestedBy.name.split(' ')[0]} and downstream approvers…`}
                       onInputChange={(e) => setComment(e.detail?.target?.value ?? '')}
                     />
+                    <div className="mt-3 grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => submit('decline')}
+                        className="inline-flex items-center justify-center gap-1.5 rounded-md border border-danger-300 bg-white px-3 py-2 text-sm font-semibold text-danger-700 shadow-sm transition hover:border-danger-500 hover:bg-danger-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-danger-500 focus-visible:ring-offset-2"
+                      >
+                        <ModusWcIcon name="close" size="sm" decorative />
+                        Decline
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => submit('approve')}
+                        className="inline-flex items-center justify-center gap-1.5 rounded-md bg-success-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-success-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-success-500 focus-visible:ring-offset-2"
+                      >
+                        <ModusWcIcon name="check" size="sm" decorative />
+                        Approve
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
