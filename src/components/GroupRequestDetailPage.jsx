@@ -3,47 +3,55 @@ import {
   ModusWcButton,
   ModusWcIcon,
   ModusWcSelect,
+  ModusWcTextarea,
 } from '@trimble-oss/moduswebcomponents-react'
 
 const STATUS_BADGE = {
   pending: 'bg-warning-100 text-warning-800 ring-warning-200',
   approved: 'bg-success-100 text-success-800 ring-success-200',
   declined: 'bg-danger-100 text-danger-800 ring-danger-200',
-  mixed: 'bg-secondary-200 text-secondary-800 ring-secondary-300',
 }
 
-const DECISION_STYLES = {
-  pending: 'bg-warning-100 text-warning-800 ring-warning-200',
-  approved: 'bg-success-100 text-success-800 ring-success-200',
-  declined: 'bg-danger-100 text-danger-800 ring-danger-200',
+const STEP_STYLES = {
+  approved: {
+    icon: 'check_circle',
+    iconClass: 'text-success-600',
+    pill: 'bg-success-100 text-success-800 ring-success-200',
+    label: 'Approved',
+  },
+  pending: {
+    icon: 'clock',
+    iconClass: 'text-warning-600',
+    pill: 'bg-warning-100 text-warning-800 ring-warning-200',
+    label: 'Awaiting decision',
+  },
+  declined: {
+    icon: 'cancel_circle',
+    iconClass: 'text-danger-600',
+    pill: 'bg-danger-100 text-danger-800 ring-danger-200',
+    label: 'Declined',
+  },
+  awaiting: {
+    icon: 'lock',
+    iconClass: 'text-secondary-400',
+    pill: 'bg-secondary-100 text-secondary-600 ring-secondary-200',
+    label: 'Awaiting prior approval',
+  },
 }
 
-const GROUPS = [
-  { id: 'approved', label: 'Approved', icon: 'check_circle', color: 'success' },
-  { id: 'pending', label: 'Pending Approval', icon: 'clock', color: 'warning' },
-  { id: 'declined', label: 'Declined', icon: 'cancel_circle', color: 'danger' },
+const STATUS_PILL_STYLES = {
+  'Full-Time': 'bg-success-100 text-success-800 ring-success-200',
+  'Part-Time': 'bg-primary-100 text-primary-800 ring-primary-200',
+  Contract: 'bg-warning-100 text-warning-800 ring-warning-200',
+  Seasonal: 'bg-secondary-200 text-secondary-700 ring-secondary-300',
+  Temporary: 'bg-danger-100 text-danger-800 ring-danger-200',
+}
+
+const GROUP_BY_OPTIONS = [
+  { label: 'No grouping', value: 'none' },
+  { label: 'Department', value: 'department' },
+  { label: 'Role', value: 'role' },
 ]
-
-const GROUP_COLORS = {
-  success: {
-    icon: 'text-success-600',
-    headerText: 'text-success-700',
-    headerBg: 'bg-success-50',
-    border: 'border-success-200',
-  },
-  warning: {
-    icon: 'text-warning-600',
-    headerText: 'text-warning-800',
-    headerBg: 'bg-warning-50',
-    border: 'border-warning-200',
-  },
-  danger: {
-    icon: 'text-danger-600',
-    headerText: 'text-danger-700',
-    headerBg: 'bg-danger-50',
-    border: 'border-danger-200',
-  },
-}
 
 function parseLocalDate(value) {
   if (!value) return null
@@ -80,13 +88,6 @@ function formatDateTime(value) {
   return `${date} at ${time}`
 }
 
-function aggregateStatus(decisions) {
-  if (decisions.length === 0) return 'pending'
-  const set = new Set(decisions)
-  if (set.size === 1) return decisions[0]
-  return 'mixed'
-}
-
 function initials(name) {
   if (!name) return ''
   return name
@@ -98,11 +99,11 @@ function initials(name) {
     .toUpperCase()
 }
 
-const GROUP_BY_OPTIONS = [
-  { label: 'Status', value: 'status' },
-  { label: 'Department', value: 'department' },
-  { label: 'Role', value: 'role' },
-]
+function deriveRequestStatus(chain) {
+  if (chain.some((s) => s.status === 'declined')) return 'declined'
+  if (chain.every((s) => s.status === 'approved')) return 'approved'
+  return 'pending'
+}
 
 export default function GroupRequestDetailPage({ request, open, onClose, onAction }) {
   useEffect(() => {
@@ -124,73 +125,62 @@ export default function GroupRequestDetailPage({ request, open, onClose, onActio
 }
 
 function Body({ request, onClose, onAction }) {
-  const [employees, setEmployees] = useState(() =>
-    request.employees.map((e) => ({ ...e })),
+  const [chain, setChain] = useState(() =>
+    request.approvalChain.map((step) => ({ ...step })),
   )
-  const [groupBy, setGroupBy] = useState('status')
-  const [expanded, setExpanded] = useState({ approved: true, pending: true, declined: true })
+  const [groupBy, setGroupBy] = useState('none')
+  const [comment, setComment] = useState('')
 
   const numDays = request.days.length
   const hoursPerEmployee = numDays * (request.hoursPerDay ?? 8)
-  const totalHours = employees.length * hoursPerEmployee
+  const totalHours = request.employees.length * hoursPerEmployee
 
-  const aggStatus = useMemo(
-    () => aggregateStatus(employees.map((e) => e.decision)),
-    [employees],
-  )
-  const approvedCount = employees.filter((e) => e.decision === 'approved').length
-  const pendingCount = employees.filter((e) => e.decision === 'pending').length
-  const declinedCount = employees.filter((e) => e.decision === 'declined').length
-  const decidedCount = approvedCount + declinedCount
-  const progressPct = employees.length === 0 ? 0 : (approvedCount / employees.length) * 100
+  const requestStatus = useMemo(() => deriveRequestStatus(chain), [chain])
+  const approvedSteps = chain.filter((s) => s.status === 'approved').length
+  const declinedSteps = chain.filter((s) => s.status === 'declined').length
+  const currentStepIndex = chain.findIndex((s) => s.status === 'pending')
+  const currentStep = currentStepIndex >= 0 ? chain[currentStepIndex] : null
+  const canAct = Boolean(currentStep?.isCurrentUser) && requestStatus === 'pending'
+  const progressPct =
+    chain.length === 0 ? 0 : (approvedSteps / chain.length) * 100
 
   const grouped = useMemo(() => {
-    if (groupBy === 'status') {
-      return GROUPS.map((g) => ({
-        ...g,
-        rows: employees.filter((e) => e.decision === g.id),
-      }))
+    if (groupBy === 'none') {
+      return [{ id: 'all', label: 'All employees', rows: request.employees }]
     }
     const buckets = new Map()
-    for (const e of employees) {
+    for (const e of request.employees) {
       const key = e[groupBy] ?? '—'
       if (!buckets.has(key)) buckets.set(key, [])
       buckets.get(key).push(e)
     }
     return Array.from(buckets.entries())
       .sort(([a], [b]) => String(a).localeCompare(String(b)))
-      .map(([key, rows]) => ({
-        id: key,
-        label: key,
-        icon: 'group',
-        color: 'success',
-        rows,
-      }))
-  }, [groupBy, employees])
+      .map(([key, rows]) => ({ id: key, label: key, rows }))
+  }, [groupBy, request.employees])
 
-  function setDecisionFor(ids, decision) {
-    setEmployees((cur) =>
-      cur.map((e) => (ids.includes(e.id) ? { ...e, decision } : e)),
-    )
-  }
-  function approveAllPending() {
-    setEmployees((cur) =>
-      cur.map((e) => (e.decision === 'pending' ? { ...e, decision: 'approved' } : e)),
-    )
-  }
-  function declineAllPending() {
-    setEmployees((cur) =>
-      cur.map((e) => (e.decision === 'pending' ? { ...e, decision: 'declined' } : e)),
-    )
-  }
   function submit(action) {
+    if (!canAct) return
+    const now = new Date().toISOString()
+    const nextChain = chain.map((step, idx) => {
+      if (idx !== currentStepIndex) return step
+      return {
+        ...step,
+        status: action === 'approve' ? 'approved' : 'declined',
+        actedOn: now,
+        comment: comment.trim() || step.comment,
+      }
+    })
+    setChain(nextChain)
     onAction?.(action, {
-      request: { ...request, employees, status: aggStatus },
+      request: { ...request, approvalChain: nextChain, status: deriveRequestStatus(nextChain) },
+      comment,
+      step: currentStep,
     })
   }
 
-  const statusClass = STATUS_BADGE[aggStatus] ?? STATUS_BADGE.pending
-  const statusLabel = aggStatus.charAt(0).toUpperCase() + aggStatus.slice(1)
+  const statusClass = STATUS_BADGE[requestStatus] ?? STATUS_BADGE.pending
+  const statusLabel = requestStatus.charAt(0).toUpperCase() + requestStatus.slice(1)
 
   return (
     <div
@@ -213,29 +203,46 @@ function Body({ request, onClose, onAction }) {
         </div>
         <div className="flex items-center gap-2">
           <ModusWcButton variant="outlined" color="tertiary" size="md" onButtonClick={onClose}>
-            Cancel
+            {canAct ? 'Cancel' : 'Close'}
           </ModusWcButton>
-          <button
-            type="button"
-            onClick={() => submit('approve')}
-            className="inline-flex items-center gap-2 rounded-md bg-success-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-success-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-success-500 focus-visible:ring-offset-2"
-          >
-            <ModusWcIcon name="thumbs_up" size="sm" decorative />
-            Submit Decision
-          </button>
+          {canAct && (
+            <>
+              <button
+                type="button"
+                onClick={() => submit('decline')}
+                className="inline-flex items-center gap-2 rounded-md bg-danger-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-danger-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-danger-500 focus-visible:ring-offset-2"
+              >
+                <ModusWcIcon name="thumbs_down" size="sm" decorative />
+                Decline
+              </button>
+              <button
+                type="button"
+                onClick={() => submit('approve')}
+                className="inline-flex items-center gap-2 rounded-md bg-success-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-success-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-success-500 focus-visible:ring-offset-2"
+              >
+                <ModusWcIcon name="thumbs_up" size="sm" decorative />
+                Approve
+              </button>
+            </>
+          )}
         </div>
       </div>
 
       <div className="flex min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-6">
-        <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_380px]">
           <div className="rounded-md border border-secondary-200 bg-white shadow-sm">
             <div className="p-5 sm:p-6">
-              <h1
-                id="group-detail-title"
-                className="text-xl font-semibold text-secondary-900"
-              >
-                {request.type} Request
-              </h1>
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <h1
+                  id="group-detail-title"
+                  className="text-xl font-semibold text-secondary-900"
+                >
+                  {request.type} Request
+                </h1>
+                <span className="text-xs text-secondary-500">
+                  Request #{request.requestNumber}
+                </span>
+              </div>
 
               <div className="mt-4 flex items-center gap-3 rounded-md bg-secondary-50 px-4 py-3">
                 <div
@@ -249,7 +256,7 @@ function Body({ request, onClose, onAction }) {
                     {request.requestedBy.name}
                   </div>
                   <div className="truncate text-xs text-secondary-500">
-                    Submitted by {request.requestedBy.name} on{' '}
+                    {request.requestedBy.title} · Submitted{' '}
                     {formatDateTime(request.requestedOn)}
                   </div>
                 </div>
@@ -264,31 +271,48 @@ function Body({ request, onClose, onAction }) {
                 <DetailRow label="Hours per day">
                   {request.hoursPerDay}h × {numDays} day{numDays === 1 ? '' : 's'}
                 </DetailRow>
-                <DetailRow label="Approver">
-                  {request.approver.name} — {request.approver.title}
-                </DetailRow>
                 {request.requesterComment && (
                   <DetailRow label="Description">{request.requesterComment}</DetailRow>
                 )}
               </dl>
 
+              {request.warning && requestStatus === 'pending' && (
+                <div
+                  role="alert"
+                  className="mt-5 flex items-start gap-3 rounded-md border-l-4 border-warning-400 bg-warning-50 px-3 py-3"
+                >
+                  <ModusWcIcon
+                    name="warning"
+                    size="md"
+                    decorative
+                    customClass="mt-0.5 text-secondary-900"
+                  />
+                  <div className="text-sm text-secondary-800">
+                    <div className="font-semibold text-secondary-900">
+                      {request.warning.title}
+                    </div>
+                    <p className="mt-1 leading-snug">{request.warning.message}</p>
+                  </div>
+                </div>
+              )}
+
               <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
                   <h2 className="text-base font-semibold text-secondary-900">Employees</h2>
                   <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary-600 px-1.5 text-[11px] font-semibold text-white">
-                    {employees.length}
+                    {request.employees.length}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 text-xs text-secondary-600">
                   <span className="font-medium">Group by</span>
-                  <div className="min-w-[140px]">
+                  <div className="min-w-[150px]">
                     <ModusWcSelect
                       aria-label="Group employees by"
                       size="sm"
                       options={GROUP_BY_OPTIONS}
                       value={groupBy}
                       onInputChange={(e) =>
-                        setGroupBy(e.detail?.target?.value ?? 'status')
+                        setGroupBy(e.detail?.target?.value ?? 'none')
                       }
                     />
                   </div>
@@ -303,112 +327,102 @@ function Body({ request, onClose, onAction }) {
               </div>
 
               <div className="mt-4 space-y-3">
-                {grouped.map((group) => {
-                  const palette = GROUP_COLORS[group.color] ?? GROUP_COLORS.success
-                  const isExpanded = expanded[group.id] ?? true
-                  if (group.rows.length === 0) return null
-                  return (
-                    <div
-                      key={group.id}
-                      className={`overflow-hidden rounded-md border ${palette.border}`}
-                    >
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setExpanded((cur) => ({ ...cur, [group.id]: !isExpanded }))
-                        }
-                        aria-expanded={isExpanded}
-                        className={`flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left transition ${palette.headerBg} hover:brightness-[0.98]`}
-                      >
-                        <div className="flex items-center gap-2">
-                          <ModusWcIcon
-                            name={group.icon}
-                            size="sm"
-                            decorative
-                            customClass={palette.icon}
-                          />
-                          <span className={`text-sm font-semibold ${palette.headerText}`}>
-                            {group.label}{' '}
-                            <span className="font-normal text-secondary-500">
-                              ({group.rows.length} employee
-                              {group.rows.length === 1 ? '' : 's'})
-                            </span>
+                {grouped.map((group) => (
+                  <div
+                    key={group.id}
+                    className="overflow-hidden rounded-md border border-secondary-200"
+                  >
+                    {groupBy !== 'none' && (
+                      <div className="flex items-center justify-between bg-secondary-50 px-4 py-2.5">
+                        <span className="text-sm font-semibold text-secondary-800">
+                          {group.label}{' '}
+                          <span className="font-normal text-secondary-500">
+                            ({group.rows.length} employee
+                            {group.rows.length === 1 ? '' : 's'})
                           </span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <span className="text-sm font-semibold text-secondary-900 tabular-nums">
-                            {(group.rows.length * hoursPerEmployee).toFixed(0)} hrs
-                          </span>
-                          <ModusWcIcon
-                            name={isExpanded ? 'expand_less' : 'expand_more'}
-                            size="sm"
-                            decorative
-                            customClass="text-secondary-500"
-                          />
-                        </div>
-                      </button>
-
-                      {isExpanded && (
-                        <div className="bg-white">
-                          <table className="w-full border-collapse text-sm">
-                            <thead>
-                              <tr className="border-b border-secondary-200 bg-secondary-50/60">
-                                <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-secondary-600">
-                                  Employee
-                                </th>
-                                <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-secondary-600">
-                                  Department
-                                </th>
-                                <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-secondary-600">
-                                  Role
-                                </th>
-                                <th className="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wide text-secondary-600">
-                                  Hours
-                                </th>
-                                <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-secondary-600">
-                                  Status
-                                </th>
-                                <th className="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wide text-secondary-600">
-                                  Actions
-                                </th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {group.rows.map((emp) => (
-                                <EmployeeRow
-                                  key={emp.id}
-                                  emp={emp}
-                                  hoursPerEmployee={hoursPerEmployee}
-                                  onApprove={() => setDecisionFor([emp.id], 'approved')}
-                                  onDecline={() => setDecisionFor([emp.id], 'declined')}
-                                  onReset={() => setDecisionFor([emp.id], 'pending')}
-                                />
-                              ))}
-                              <tr className="bg-secondary-50/40">
-                                <td colSpan={3} />
-                                <td className="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wide text-secondary-600">
-                                  Total:
-                                </td>
-                                <td
-                                  colSpan={2}
-                                  className="px-3 py-2 text-left text-sm font-semibold text-secondary-900 tabular-nums"
+                        </span>
+                        <span className="text-sm font-semibold text-secondary-900 tabular-nums">
+                          {(group.rows.length * hoursPerEmployee).toFixed(0)} hrs
+                        </span>
+                      </div>
+                    )}
+                    <table className="w-full border-collapse text-sm">
+                      <thead>
+                        <tr className="border-b border-secondary-200 bg-secondary-50/60">
+                          <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-secondary-600">
+                            Employee
+                          </th>
+                          <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-secondary-600">
+                            Department
+                          </th>
+                          <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-secondary-600">
+                            Role
+                          </th>
+                          <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-secondary-600">
+                            Status
+                          </th>
+                          <th className="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wide text-secondary-600">
+                            Hours
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {group.rows.map((emp) => {
+                          const statusClassEmp =
+                            STATUS_PILL_STYLES[emp.employmentStatus] ??
+                            'bg-secondary-100 text-secondary-700 ring-secondary-200'
+                          return (
+                            <tr
+                              key={emp.id}
+                              className="border-b border-secondary-100 last:border-b-0"
+                            >
+                              <td className="px-4 py-2 align-middle">
+                                <div className="flex items-center gap-2">
+                                  <div
+                                    aria-hidden
+                                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-secondary-700 text-[11px] font-semibold text-white"
+                                  >
+                                    {emp.initials || initials(emp.name)}
+                                  </div>
+                                  <div className="min-w-0">
+                                    <div className="flex items-center gap-1.5">
+                                      <a
+                                        href="#"
+                                        onClick={(e) => e.preventDefault()}
+                                        className="truncate text-sm font-medium text-primary-700 hover:text-primary-800"
+                                      >
+                                        {emp.name}
+                                      </a>
+                                      <span className="rounded bg-secondary-100 px-1.5 py-0.5 font-mono text-[10px] text-secondary-600">
+                                        #{emp.employeeNumber}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-3 py-2 align-middle text-xs text-secondary-700">
+                                {emp.department}
+                              </td>
+                              <td className="px-3 py-2 align-middle text-xs text-secondary-700">
+                                {emp.role}
+                              </td>
+                              <td className="px-3 py-2 align-middle">
+                                <span
+                                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${statusClassEmp}`}
                                 >
-                                  {(group.rows.length * hoursPerEmployee).toFixed(0)} hrs
-                                </td>
-                              </tr>
-                            </tbody>
-                          </table>
-                        </div>
-                      )}
-                    </div>
-                  )
-                })}
-
-                {employees.length > 0 && grouped.every((g) => g.rows.length === 0) && (
-                  <div className="rounded-md border border-secondary-200 bg-secondary-50 px-4 py-3 text-sm text-secondary-500">
-                    No employees in this view.
+                                  {emp.employmentStatus}
+                                </span>
+                              </td>
+                              <td className="px-3 py-2 align-middle text-right text-secondary-700 tabular-nums">
+                                {hoursPerEmployee.toFixed(0)}h
+                              </td>
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                    </table>
                   </div>
-                )}
+                ))}
               </div>
             </div>
           </div>
@@ -418,7 +432,7 @@ function Body({ request, onClose, onAction }) {
               <div className="h-1 w-full bg-warning-400" aria-hidden />
               <div className="p-5">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-base font-semibold text-secondary-900">Approvals</h2>
+                  <h2 className="text-base font-semibold text-secondary-900">Approval Workflow</h2>
                   <span
                     className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset ${statusClass}`}
                   >
@@ -430,87 +444,50 @@ function Body({ request, onClose, onAction }) {
                   <div className="mb-1 flex items-center justify-between text-xs text-secondary-700">
                     <span className="font-semibold">Approvals Progress</span>
                     <span className="text-secondary-500">
-                      {approvedCount} of {employees.length} approved
+                      {approvedSteps} of {chain.length} approved
+                      {declinedSteps > 0 ? ` · ${declinedSteps} declined` : ''}
                     </span>
                   </div>
                   <div className="h-2 w-full overflow-hidden rounded-full bg-secondary-100">
                     <div
-                      className="h-full rounded-full bg-success-500 transition-all"
+                      className={`h-full rounded-full transition-all ${
+                        requestStatus === 'declined' ? 'bg-danger-500' : 'bg-success-500'
+                      }`}
                       style={{ width: `${progressPct}%` }}
                       aria-hidden
                     />
                   </div>
                 </div>
 
-                <h3 className="mt-5 text-sm font-semibold text-secondary-800">
-                  Employee Decisions
-                </h3>
+                <ol className="mt-5 space-y-0">
+                  {chain.map((step, idx) => (
+                    <WorkflowStep
+                      key={step.id}
+                      step={step}
+                      index={idx}
+                      isLast={idx === chain.length - 1}
+                      isCurrent={idx === currentStepIndex}
+                    />
+                  ))}
+                </ol>
 
-                <DecisionBucket
-                  icon="check_circle"
-                  iconClass="text-success-600"
-                  textClass="text-success-700"
-                  label={`Approved (${approvedCount} employee${approvedCount === 1 ? '' : 's'})`}
-                  employees={employees.filter((e) => e.decision === 'approved')}
-                  chipClass="bg-success-100 text-success-800 ring-success-200"
-                />
-                <DecisionBucket
-                  icon="clock"
-                  iconClass="text-warning-600"
-                  textClass="text-warning-800"
-                  label={`Pending Approval (${pendingCount} employee${pendingCount === 1 ? '' : 's'})`}
-                  employees={employees.filter((e) => e.decision === 'pending')}
-                  chipClass="bg-warning-100 text-warning-800 ring-warning-200"
-                />
-                <DecisionBucket
-                  icon="cancel_circle"
-                  iconClass="text-danger-600"
-                  textClass="text-danger-700"
-                  label={`Declined (${declinedCount} employee${declinedCount === 1 ? '' : 's'})`}
-                  employees={employees.filter((e) => e.decision === 'declined')}
-                  chipClass="bg-danger-100 text-danger-800 ring-danger-200"
-                />
-
-                {request.warning && declinedCount === 0 && pendingCount > 0 && (
-                  <div
-                    role="alert"
-                    className="mt-4 rounded-md border-l-4 border-warning-400 bg-warning-50 px-3 py-2 text-xs text-secondary-800"
-                  >
-                    <div className="font-semibold text-secondary-900">
-                      {request.warning.title}
-                    </div>
-                    <p className="mt-0.5 leading-snug">{request.warning.message}</p>
+                {canAct && (
+                  <div className="mt-5 rounded-md border border-secondary-200 bg-secondary-50 p-3">
+                    <label
+                      htmlFor="approver-comment"
+                      className="mb-1 block text-xs font-semibold uppercase tracking-wide text-secondary-600"
+                    >
+                      Your comment (optional)
+                    </label>
+                    <ModusWcTextarea
+                      id="approver-comment"
+                      rows={3}
+                      value={comment}
+                      placeholder={`Notes for ${request.requestedBy.name.split(' ')[0]} and downstream approvers…`}
+                      onInputChange={(e) => setComment(e.detail?.target?.value ?? '')}
+                    />
                   </div>
                 )}
-
-                <div className="mt-5 flex flex-col gap-2 border-t border-secondary-100 pt-4">
-                  <ModusWcButton
-                    variant="outlined"
-                    color="tertiary"
-                    size="sm"
-                    fullWidth
-                    onButtonClick={approveAllPending}
-                    disabled={pendingCount === 0}
-                  >
-                    <ModusWcIcon name="thumbs_up" size="sm" decorative />
-                    Approve all pending
-                  </ModusWcButton>
-                  <ModusWcButton
-                    variant="outlined"
-                    color="tertiary"
-                    size="sm"
-                    fullWidth
-                    onButtonClick={declineAllPending}
-                    disabled={pendingCount === 0}
-                  >
-                    <ModusWcIcon name="thumbs_down" size="sm" decorative />
-                    Decline all pending
-                  </ModusWcButton>
-                </div>
-
-                <div className="mt-3 text-[11px] text-secondary-500">
-                  {decidedCount} of {employees.length} decisions made
-                </div>
               </div>
             </div>
 
@@ -521,7 +498,13 @@ function Body({ request, onClose, onAction }) {
                 decorative
                 customClass="mt-0.5 text-secondary-500"
               />
-              <span>Declined employees can be reviewed and resubmitted by the requester.</span>
+              <span>
+                {requestStatus === 'declined'
+                  ? 'A declined step stops the workflow. The requester can revise and resubmit.'
+                  : requestStatus === 'approved'
+                    ? 'All approvers have signed off. The request is fully approved.'
+                    : 'Each step must be approved in order. The request advances automatically once you act.'}
+              </span>
             </div>
           </aside>
         </div>
@@ -539,115 +522,90 @@ function DetailRow({ label, children }) {
   )
 }
 
-function EmployeeRow({ emp, hoursPerEmployee, onApprove, onDecline, onReset }) {
-  const decisionClass =
-    DECISION_STYLES[emp.decision] ?? 'bg-secondary-100 text-secondary-700 ring-secondary-200'
+function WorkflowStep({ step, index, isLast, isCurrent }) {
+  const styles = STEP_STYLES[step.status] ?? STEP_STYLES.awaiting
+  const connectorClass =
+    step.status === 'approved'
+      ? 'bg-success-300'
+      : step.status === 'declined'
+        ? 'bg-danger-300'
+        : 'bg-secondary-200'
   return (
-    <tr className="border-b border-secondary-100 last:border-b-0">
-      <td className="px-4 py-2 align-middle">
-        <div className="flex items-center gap-2">
+    <li className="relative grid grid-cols-[28px_1fr] gap-x-3 pb-4 last:pb-0">
+      <div className="relative flex flex-col items-center">
+        <div
+          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white ring-2 ${
+            isCurrent
+              ? 'ring-warning-400'
+              : step.status === 'approved'
+                ? 'ring-success-400'
+                : step.status === 'declined'
+                  ? 'ring-danger-400'
+                  : 'ring-secondary-300'
+          }`}
+        >
+          <ModusWcIcon
+            name={styles.icon}
+            size="sm"
+            decorative
+            customClass={styles.iconClass}
+          />
+        </div>
+        {!isLast && (
+          <div className={`mt-0.5 w-0.5 flex-1 ${connectorClass}`} aria-hidden />
+        )}
+      </div>
+
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-baseline justify-between gap-1">
+          <span className="text-[10px] font-semibold uppercase tracking-wide text-secondary-500">
+            Step {index + 1} · {step.role}
+          </span>
+          <span
+            className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ring-1 ring-inset ${styles.pill}`}
+          >
+            {styles.label}
+          </span>
+        </div>
+        <div className="mt-1 flex items-center gap-2">
           <div
             aria-hidden
-            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-secondary-700 text-[11px] font-semibold text-white"
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-secondary-700 text-[10px] font-semibold text-white"
           >
-            {emp.initials || initials(emp.name)}
+            {step.approver.initials || initials(step.approver.name)}
           </div>
           <div className="min-w-0">
-            <div className="flex items-center gap-1.5">
-              <a
-                href="#"
-                onClick={(e) => e.preventDefault()}
-                className="truncate text-sm font-medium text-primary-700 hover:text-primary-800"
-              >
-                {emp.name}
-              </a>
-              <span className="rounded bg-secondary-100 px-1.5 py-0.5 font-mono text-[10px] text-secondary-600">
-                #{emp.employeeNumber}
-              </span>
+            <div className="truncate text-sm font-semibold text-secondary-900">
+              {step.approver.name}
+              {step.isCurrentUser && (
+                <span className="ml-1.5 rounded bg-primary-100 px-1.5 py-0.5 text-[10px] font-semibold text-primary-700">
+                  You
+                </span>
+              )}
+            </div>
+            <div className="truncate text-xs text-secondary-500">
+              {step.approver.title}
             </div>
           </div>
         </div>
-      </td>
-      <td className="px-3 py-2 align-middle text-xs text-secondary-700">
-        {emp.department}
-      </td>
-      <td className="px-3 py-2 align-middle text-xs text-secondary-700">{emp.role}</td>
-      <td className="px-3 py-2 align-middle text-right text-secondary-700 tabular-nums">
-        {hoursPerEmployee.toFixed(0)}h
-      </td>
-      <td className="px-3 py-2 align-middle">
-        <span
-          className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${decisionClass}`}
-        >
-          {emp.decision.charAt(0).toUpperCase() + emp.decision.slice(1)}
-        </span>
-      </td>
-      <td className="px-3 py-2 align-middle">
-        <div className="flex items-center justify-end gap-1">
-          <button
-            type="button"
-            onClick={onApprove}
-            aria-label={`Approve ${emp.name}`}
-            className={`inline-flex h-7 w-7 items-center justify-center rounded-md border transition focus:outline-none focus-visible:ring-2 focus-visible:ring-success-500 ${
-              emp.decision === 'approved'
-                ? 'border-success-600 bg-success-600 text-white'
-                : 'border-secondary-300 bg-white text-secondary-600 hover:border-success-500 hover:text-success-700'
-            }`}
-          >
-            <ModusWcIcon name="thumbs_up" size="sm" decorative />
-          </button>
-          <button
-            type="button"
-            onClick={onDecline}
-            aria-label={`Decline ${emp.name}`}
-            className={`inline-flex h-7 w-7 items-center justify-center rounded-md border transition focus:outline-none focus-visible:ring-2 focus-visible:ring-danger-500 ${
-              emp.decision === 'declined'
-                ? 'border-danger-600 bg-danger-600 text-white'
-                : 'border-secondary-300 bg-white text-secondary-600 hover:border-danger-500 hover:text-danger-700'
-            }`}
-          >
-            <ModusWcIcon name="thumbs_down" size="sm" decorative />
-          </button>
-          {emp.decision !== 'pending' && (
-            <button
-              type="button"
-              onClick={onReset}
-              aria-label={`Reset decision for ${emp.name}`}
-              className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-secondary-300 bg-white text-secondary-600 transition hover:border-secondary-400 hover:text-secondary-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary-400"
-            >
-              <ModusWcIcon name="refresh" size="sm" decorative />
-            </button>
-          )}
-        </div>
-      </td>
-    </tr>
-  )
-}
-
-function DecisionBucket({ icon, iconClass, textClass, label, employees, chipClass }) {
-  if (employees.length === 0) return null
-  return (
-    <div className="mt-3">
-      <div className="flex items-center gap-1.5">
-        <ModusWcIcon name={icon} size="sm" decorative customClass={iconClass} />
-        <span className={`text-sm font-semibold ${textClass}`}>{label}</span>
+        {step.actedOn && (
+          <div className="mt-1 text-[11px] text-secondary-500">
+            {step.status === 'approved' ? 'Approved' : 'Declined'}{' '}
+            {formatDateTime(step.actedOn)}
+          </div>
+        )}
+        {step.comment && (
+          <blockquote className="mt-1 rounded-md bg-secondary-50 px-2.5 py-1.5 text-xs italic text-secondary-700">
+            &ldquo;{step.comment}&rdquo;
+          </blockquote>
+        )}
+        {isCurrent && step.isCurrentUser && (
+          <div className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-warning-50 px-2 py-0.5 text-[11px] font-medium text-warning-800 ring-1 ring-inset ring-warning-200">
+            <ModusWcIcon name="alert" size="sm" decorative customClass="text-warning-600" />
+            Awaiting your action
+          </div>
+        )}
       </div>
-      <div className="mt-1.5 ml-5 flex flex-wrap gap-1.5">
-        {employees.map((emp) => (
-          <span
-            key={emp.id}
-            title={`${emp.name} (#${emp.employeeNumber})`}
-            className={`inline-flex h-6 items-center gap-1 rounded-full px-2 text-[11px] font-medium ring-1 ring-inset ${chipClass}`}
-          >
-            <span className="font-semibold tabular-nums">
-              {emp.initials || initials(emp.name)}
-            </span>
-            <span className="font-mono text-[10px] opacity-75">
-              #{emp.employeeNumber}
-            </span>
-          </span>
-        ))}
-      </div>
-    </div>
+    </li>
   )
 }

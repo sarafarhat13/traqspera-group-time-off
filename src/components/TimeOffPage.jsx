@@ -60,18 +60,19 @@ export default function TimeOffPage() {
     setTimeout(() => setToast(null), 2200)
   }
 
-  function handleGroupAction(action, { request }) {
+  function handleGroupAction(action, { request, step }) {
     setActiveGroupRequest(null)
-    const approved = request.employees.filter((e) => e.decision === 'approved').length
-    const declined = request.employees.filter((e) => e.decision === 'declined').length
-    const summary =
-      action === 'approve' || action === 'decline'
-        ? ` (${approved} approved, ${declined} declined)`
-        : ''
+    const stepLabel = step ? ` for the ${step.role} step` : ''
+    const finalNote =
+      request.status === 'approved'
+        ? ' — workflow complete.'
+        : request.status === 'declined'
+          ? ' — workflow stopped.'
+          : '.'
     setToast(
-      `Group request #${request.requestNumber} ${ACTION_LABEL[action] ?? action}${summary}.`,
+      `Group request #${request.requestNumber} ${ACTION_LABEL[action] ?? action}${stepLabel}${finalNote}`,
     )
-    setTimeout(() => setToast(null), 2500)
+    setTimeout(() => setToast(null), 2800)
   }
 
   return (

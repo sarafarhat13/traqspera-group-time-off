@@ -175,13 +175,11 @@ export const REQUESTS = {
   },
 }
 
-// Full group-request payloads keyed by id (powering the group detail modal).
-// Each employee in the request can be approved / declined individually.
-function groupEmployees(indices, defaultStatus = 'pending') {
+// Full group-request payloads keyed by id (powering the group detail page).
+// Each request has a sequential approvalChain that moves Manager → HR → Payroll.
+function groupEmployees(indices) {
   return indices.map((i) => ({
     ...EMPLOYEES[i % EMPLOYEES.length],
-    perEmployeeHours: 8,
-    decision: defaultStatus, // 'pending' | 'approved' | 'declined'
   }))
 }
 
@@ -203,24 +201,61 @@ export const GROUP_REQUESTS = {
     hoursPerDay: 8,
     requesterComment:
       'Mandatory Q2 safety re-certification for all field crews. Coverage has been arranged with subcontractors.',
-    approver: APPROVERS[0],
     days: [
       { date: '2026-04-01', conflict: false },
       { date: '2026-04-02', conflict: false },
     ],
     employees: groupEmployees(
       [0, 2, 3, 5, 6, 8, 9, 11, 12, 14, 15, 17, 18, 20, 21, 23, 24, 26, 27, 29, 30, 32, 33, 35],
-      'pending',
     ),
+    approvalChain: [
+      {
+        id: 'step-mgr',
+        role: 'Direct Manager',
+        approver: {
+          id: 'u-101',
+          name: 'Alex Morgan',
+          title: 'Director of Operations',
+          initials: 'AM',
+        },
+        status: 'approved',
+        actedOn: '2026-03-23T08:42:00',
+        comment: 'Coverage looks good for the dates requested.',
+      },
+      {
+        id: 'step-hr',
+        role: 'HR Business Partner',
+        approver: {
+          id: 'u-104',
+          name: 'Dana Reyes',
+          title: 'HR Business Partner',
+          initials: 'DR',
+        },
+        status: 'pending',
+        actedOn: null,
+        comment: null,
+        isCurrentUser: true,
+      },
+      {
+        id: 'step-payroll',
+        role: 'Payroll',
+        approver: {
+          id: 'u-107',
+          name: 'Lin Chen',
+          title: 'Payroll Manager',
+          initials: 'LC',
+        },
+        status: 'awaiting',
+        actedOn: null,
+        comment: null,
+      },
+    ],
     warning: {
       kind: 'coverage',
       title: '24 employees out for 2 consecutive days',
       message:
         'Approving this request will exceed the recommended daily absence limit for Field Operations. Please confirm coverage before approving.',
     },
-    history: [
-      { at: '2026-03-22T10:15:00', actor: 'Jordan Rivera', action: 'Submitted group request' },
-    ],
   },
   'grp-101': {
     id: 'grp-101',
@@ -239,15 +274,51 @@ export const GROUP_REQUESTS = {
     hoursPerDay: 8,
     requesterComment:
       'Engineering team offsite at the lakeside conference center — planning workshop and Q3 roadmap.',
-    approver: APPROVERS[1],
     days: [
       { date: '2026-04-27', conflict: false },
       { date: '2026-04-28', conflict: false },
     ],
-    employees: groupEmployees([1, 4, 7, 10, 13, 16, 19, 22], 'approved'),
-    history: [
-      { at: '2026-03-30T09:00:00', actor: 'Priya Patel', action: 'Submitted group request' },
-      { at: '2026-03-31T14:42:00', actor: 'Alex Morgan', action: 'Approved request' },
+    employees: groupEmployees([1, 4, 7, 10, 13, 16, 19, 22]),
+    approvalChain: [
+      {
+        id: 'step-mgr',
+        role: 'Direct Manager',
+        approver: {
+          id: 'u-103',
+          name: 'Marcus Chen',
+          title: 'Project Manager',
+          initials: 'MC',
+        },
+        status: 'approved',
+        actedOn: '2026-03-30T14:12:00',
+        comment: 'Approved — roadmap planning is critical.',
+      },
+      {
+        id: 'step-hr',
+        role: 'HR Business Partner',
+        approver: {
+          id: 'u-104',
+          name: 'Dana Reyes',
+          title: 'HR Business Partner',
+          initials: 'DR',
+        },
+        status: 'approved',
+        actedOn: '2026-03-31T09:18:00',
+        comment: null,
+      },
+      {
+        id: 'step-payroll',
+        role: 'Payroll',
+        approver: {
+          id: 'u-107',
+          name: 'Lin Chen',
+          title: 'Payroll Manager',
+          initials: 'LC',
+        },
+        status: 'approved',
+        actedOn: '2026-03-31T15:40:00',
+        comment: 'PTO accrual will be applied accordingly.',
+      },
     ],
   },
 }
