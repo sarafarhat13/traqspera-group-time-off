@@ -123,7 +123,28 @@ const SORTABLE_COLUMNS = [
   { id: 'department', label: 'Department', accessor: (e) => e.department },
   { id: 'costCenter', label: 'Cost Center', accessor: (e) => e.costCenter },
   { id: 'role', label: 'Role', accessor: (e) => e.role },
+  { id: 'employmentStatus', label: 'Status', accessor: (e) => e.employmentStatus },
 ]
+
+// Full class strings so Tailwind keeps them in the production bundle.
+const STATUS_STYLES = {
+  'Full-Time': 'bg-success-100 text-success-800 ring-success-200',
+  'Part-Time': 'bg-primary-100 text-primary-800 ring-primary-200',
+  Contract: 'bg-warning-100 text-warning-800 ring-warning-200',
+  Seasonal: 'bg-secondary-200 text-secondary-700 ring-secondary-300',
+  Temporary: 'bg-danger-100 text-danger-800 ring-danger-200',
+}
+
+function StatusPill({ status }) {
+  const cls = STATUS_STYLES[status] ?? 'bg-secondary-100 text-secondary-700 ring-secondary-200'
+  return (
+    <span
+      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${cls}`}
+    >
+      {status}
+    </span>
+  )
+}
 
 function SortHeader({ column, sort, onSort, className = '' }) {
   const active = sort.column === column.id
@@ -403,6 +424,9 @@ export default function EmployeeSelector({ selectedIds, onChange }) {
                       </td>
                       <td className="px-3 py-2 align-middle text-secondary-700">
                         {emp.role}
+                      </td>
+                      <td className="px-3 py-2 align-middle">
+                        <StatusPill status={emp.employmentStatus} />
                       </td>
                     </tr>
                   )
