@@ -12,7 +12,7 @@ import CalendarView from './CalendarView'
 import AddRequestMenu from './AddRequestMenu'
 import GroupRequestModal from './GroupRequestModal'
 import PendingRequestModal from './PendingRequestModal'
-import GroupRequestDetailModal from './GroupRequestDetailModal'
+import GroupRequestDetailPage from './GroupRequestDetailPage'
 import { REQUESTS, GROUP_REQUESTS } from '../data/mockData'
 
 const ACTION_LABEL = {
@@ -121,7 +121,7 @@ export default function TimeOffPage() {
         onAction={handleRequestAction}
       />
 
-      <GroupRequestDetailModal
+      <GroupRequestDetailPage
         open={Boolean(activeGroupRequest)}
         request={activeGroupRequest}
         onClose={() => setActiveGroupRequest(null)}
