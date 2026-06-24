@@ -56,6 +56,7 @@ const LEGEND = [
   { id: 'declined', label: 'Declined', dot: 'bg-danger-500' },
   { id: 'holiday', label: 'Holiday', dot: 'bg-primary-400' },
   { id: 'blackout', label: 'Blackout', dot: 'bg-secondary-900' },
+  { id: 'group', label: 'Group', icon: 'people_group' },
   { id: 'selected', label: 'Selected', dot: 'bg-secondary-500' },
 ]
 
@@ -135,7 +136,11 @@ export default function CalendarView({ onEventClick }) {
           <div className="flex flex-wrap items-center gap-3">
             {LEGEND.map((l) => (
               <span key={l.id} className="inline-flex items-center gap-1.5 text-secondary-600">
-                <span className={`h-2.5 w-2.5 rounded-full ${l.dot}`} />
+                {l.icon ? (
+                  <ModusWcIcon name={l.icon} size="sm" decorative customClass="text-secondary-500" />
+                ) : (
+                  <span className={`h-2.5 w-2.5 rounded-full ${l.dot}`} />
+                )}
                 {l.label}
               </span>
             ))}
@@ -169,18 +174,29 @@ export default function CalendarView({ onEventClick }) {
                   <div className="flex flex-col gap-1">
                     {events.map((e, i) => {
                       const clickable = Boolean(e.requestId)
+                      const isGroup = e.kind === 'group'
                       const className = `flex items-center gap-1 truncate rounded px-1.5 py-0.5 text-[10px] font-medium leading-tight ${
                         STATUS_STYLES[e.status] ?? 'bg-secondary-200 text-secondary-800'
-                      } ${clickable ? 'cursor-pointer hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-primary-500' : ''}`
+                      } ${isGroup ? 'border-l-2 border-primary-600 ring-1 ring-inset ring-primary-300/60' : ''} ${
+                        clickable ? 'cursor-pointer hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-primary-500' : ''
+                      }`
                       const inner = (
                         <>
-                          {e.status === 'declined' && (
+                          {isGroup && (
+                            <ModusWcIcon
+                              name="people_group"
+                              size="sm"
+                              decorative
+                              customClass="text-[10px]"
+                            />
+                          )}
+                          {!isGroup && e.status === 'declined' && (
                             <ModusWcIcon name="warning" size="sm" decorative customClass="text-[10px]" />
                           )}
-                          {e.status === 'holiday' && (
+                          {!isGroup && e.status === 'holiday' && (
                             <ModusWcIcon name="calendar" size="sm" decorative customClass="text-[10px]" />
                           )}
-                          {e.status === 'blackout' && (
+                          {!isGroup && e.status === 'blackout' && (
                             <span className="flex h-2.5 w-2.5 flex-shrink-0 items-center justify-center rounded-full border border-white" />
                           )}
                           <span className="truncate">{e.label}</span>

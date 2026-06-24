@@ -89,8 +89,11 @@ export const EMPLOYEES = Array.from({ length: 36 }, (_, i) => {
 })
 
 // Calendar mock — April 2026 (matches the screenshot reference).
-// Each event { date: 'YYYY-MM-DD', label, status, requestId? }
+// Each event { date: 'YYYY-MM-DD', label, status, requestId?, kind? }
+// kind: 'group' marks employer-wide team time-off; default is individual.
 export const CALENDAR_EVENTS = [
+  { date: '2026-04-01', label: 'Q2 Safety Training (24 employees)', status: 'pending', requestId: 'grp-100', kind: 'group' },
+  { date: '2026-04-02', label: 'Q2 Safety Training (24 employees)', status: 'pending', requestId: 'grp-100', kind: 'group' },
   { date: '2026-04-05', label: '10001 - Sara Farhat - Vacation', status: 'approved' },
   { date: '2026-04-06', label: '10001 - Sara Farhat - Vacation', status: 'approved' },
   { date: '2026-04-07', label: '10001 - Sara Farhat - Vacation', status: 'approved' },
@@ -102,6 +105,8 @@ export const CALENDAR_EVENTS = [
   { date: '2026-04-22', label: '10002 - John Smith - Vacation', status: 'approved' },
   { date: '2026-04-23', label: '10002 - John Smith - Vacation', status: 'approved' },
   { date: '2026-04-24', label: '10002 - John Smith - Vacation', status: 'approved' },
+  { date: '2026-04-27', label: 'Engineering Offsite (8 employees)', status: 'approved', requestId: 'grp-101', kind: 'group' },
+  { date: '2026-04-28', label: 'Engineering Offsite (8 employees)', status: 'approved', requestId: 'grp-101', kind: 'group' },
 ]
 
 // Full request payloads keyed by id (powering the request detail modal).
@@ -166,6 +171,83 @@ export const REQUESTS = {
     },
     history: [
       { at: '2026-04-15T09:05:00', actor: 'Dwayne Johnson', action: 'Submitted request' },
+    ],
+  },
+}
+
+// Full group-request payloads keyed by id (powering the group detail modal).
+// Each employee in the request can be approved / declined individually.
+function groupEmployees(indices, defaultStatus = 'pending') {
+  return indices.map((i) => ({
+    ...EMPLOYEES[i % EMPLOYEES.length],
+    perEmployeeHours: 8,
+    decision: defaultStatus, // 'pending' | 'approved' | 'declined'
+  }))
+}
+
+export const GROUP_REQUESTS = {
+  'grp-100': {
+    id: 'grp-100',
+    requestNumber: 100,
+    kind: 'group',
+    requestedBy: {
+      id: 'u-105',
+      name: 'Jordan Rivera',
+      title: 'Field Operations Manager',
+      initials: 'JR',
+    },
+    status: 'pending',
+    requestedOn: '2026-03-22T10:15:00',
+    type: 'Mandatory Training',
+    dateRange: { start: '2026-04-01', end: '2026-04-02' },
+    hoursPerDay: 8,
+    requesterComment:
+      'Mandatory Q2 safety re-certification for all field crews. Coverage has been arranged with subcontractors.',
+    approver: APPROVERS[0],
+    days: [
+      { date: '2026-04-01', conflict: false },
+      { date: '2026-04-02', conflict: false },
+    ],
+    employees: groupEmployees(
+      [0, 2, 3, 5, 6, 8, 9, 11, 12, 14, 15, 17, 18, 20, 21, 23, 24, 26, 27, 29, 30, 32, 33, 35],
+      'pending',
+    ),
+    warning: {
+      kind: 'coverage',
+      title: '24 employees out for 2 consecutive days',
+      message:
+        'Approving this request will exceed the recommended daily absence limit for Field Operations. Please confirm coverage before approving.',
+    },
+    history: [
+      { at: '2026-03-22T10:15:00', actor: 'Jordan Rivera', action: 'Submitted group request' },
+    ],
+  },
+  'grp-101': {
+    id: 'grp-101',
+    requestNumber: 101,
+    kind: 'group',
+    requestedBy: {
+      id: 'u-106',
+      name: 'Priya Patel',
+      title: 'VP, People',
+      initials: 'PP',
+    },
+    status: 'approved',
+    requestedOn: '2026-03-30T09:00:00',
+    type: 'Team Trip',
+    dateRange: { start: '2026-04-27', end: '2026-04-28' },
+    hoursPerDay: 8,
+    requesterComment:
+      'Engineering team offsite at the lakeside conference center — planning workshop and Q3 roadmap.',
+    approver: APPROVERS[1],
+    days: [
+      { date: '2026-04-27', conflict: false },
+      { date: '2026-04-28', conflict: false },
+    ],
+    employees: groupEmployees([1, 4, 7, 10, 13, 16, 19, 22], 'approved'),
+    history: [
+      { at: '2026-03-30T09:00:00', actor: 'Priya Patel', action: 'Submitted group request' },
+      { at: '2026-03-31T14:42:00', actor: 'Alex Morgan', action: 'Approved request' },
     ],
   },
 }

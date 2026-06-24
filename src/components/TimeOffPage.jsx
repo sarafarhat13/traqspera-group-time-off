@@ -12,7 +12,8 @@ import CalendarView from './CalendarView'
 import AddRequestMenu from './AddRequestMenu'
 import GroupRequestModal from './GroupRequestModal'
 import PendingRequestModal from './PendingRequestModal'
-import { REQUESTS } from '../data/mockData'
+import GroupRequestDetailModal from './GroupRequestDetailModal'
+import { REQUESTS, GROUP_REQUESTS } from '../data/mockData'
 
 const ACTION_LABEL = {
   approve: 'approved',
@@ -26,6 +27,7 @@ export default function TimeOffPage() {
   const [groupOpen, setGroupOpen] = useState(false)
   const [toast, setToast] = useState(null)
   const [activeRequest, setActiveRequest] = useState(null)
+  const [activeGroupRequest, setActiveGroupRequest] = useState(null)
 
   function handleAdd(kind) {
     if (kind === 'group') {
@@ -42,7 +44,13 @@ export default function TimeOffPage() {
 
   function handleEventClick(event) {
     const id = event?.requestId
-    const request = id ? REQUESTS[id] : null
+    if (!id) return
+    if (event.kind === 'group') {
+      const group = GROUP_REQUESTS[id]
+      if (group) setActiveGroupRequest(group)
+      return
+    }
+    const request = REQUESTS[id]
     if (request) setActiveRequest(request)
   }
 
@@ -50,6 +58,20 @@ export default function TimeOffPage() {
     setActiveRequest(null)
     setToast(`Request #${request.requestNumber} ${ACTION_LABEL[action] ?? action}.`)
     setTimeout(() => setToast(null), 2200)
+  }
+
+  function handleGroupAction(action, { request }) {
+    setActiveGroupRequest(null)
+    const approved = request.employees.filter((e) => e.decision === 'approved').length
+    const declined = request.employees.filter((e) => e.decision === 'declined').length
+    const summary =
+      action === 'approve' || action === 'decline'
+        ? ` (${approved} approved, ${declined} declined)`
+        : ''
+    setToast(
+      `Group request #${request.requestNumber} ${ACTION_LABEL[action] ?? action}${summary}.`,
+    )
+    setTimeout(() => setToast(null), 2500)
   }
 
   return (
@@ -97,6 +119,13 @@ export default function TimeOffPage() {
         request={activeRequest}
         onClose={() => setActiveRequest(null)}
         onAction={handleRequestAction}
+      />
+
+      <GroupRequestDetailModal
+        open={Boolean(activeGroupRequest)}
+        request={activeGroupRequest}
+        onClose={() => setActiveGroupRequest(null)}
+        onAction={handleGroupAction}
       />
     </main>
   )
