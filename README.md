@@ -60,7 +60,7 @@ A full-page route — not a modal — used to review and act on group requests.
   - **Your decision** block (only visible to the active approver): comment textarea + outlined `Decline` (close icon) and solid `Approve` (check icon) buttons.
   - Dynamic bottom hint that adapts to in-progress / approved / declined state.
 
-The mock data ships with one **pending** request (Q2 Safety Training — manager has approved, HR Business Partner is the current step, payroll is awaiting) and one **fully approved** request (Engineering Offsite — all three steps signed off with timestamps and comments).
+The mock data ships with one **pending** Paid Time Off request (a Field Operations PTO block — manager has approved, HR Business Partner is the current step, payroll is awaiting) and one **fully approved** Team Trip request (Engineering Offsite — all three steps signed off with timestamps and comments).
 
 ## Design system
 

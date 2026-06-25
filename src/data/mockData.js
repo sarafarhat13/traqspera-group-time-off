@@ -92,8 +92,8 @@ export const EMPLOYEES = Array.from({ length: 36 }, (_, i) => {
 // Each event { date: 'YYYY-MM-DD', label, status, requestId?, kind? }
 // kind: 'group' marks employer-wide team time-off; default is individual.
 export const CALENDAR_EVENTS = [
-  { date: '2026-04-01', label: 'Q2 Safety Training (24 employees)', status: 'pending', requestId: 'grp-100', kind: 'group' },
-  { date: '2026-04-02', label: 'Q2 Safety Training (24 employees)', status: 'pending', requestId: 'grp-100', kind: 'group' },
+  { date: '2026-04-01', label: 'Field Ops PTO Block (24 employees)', status: 'pending', requestId: 'grp-100', kind: 'group' },
+  { date: '2026-04-02', label: 'Field Ops PTO Block (24 employees)', status: 'pending', requestId: 'grp-100', kind: 'group' },
   { date: '2026-04-05', label: '10001 - Sara Farhat - Vacation', status: 'approved' },
   { date: '2026-04-06', label: '10001 - Sara Farhat - Vacation', status: 'approved' },
   { date: '2026-04-07', label: '10001 - Sara Farhat - Vacation', status: 'approved' },
@@ -196,11 +196,11 @@ export const GROUP_REQUESTS = {
     },
     status: 'pending',
     requestedOn: '2026-03-22T10:15:00',
-    type: 'Mandatory Training',
+    type: 'Paid Time Off',
     dateRange: { start: '2026-04-01', end: '2026-04-02' },
     hoursPerDay: 8,
     requesterComment:
-      'Mandatory Q2 safety re-certification for all field crews. Coverage has been arranged with subcontractors.',
+      'Two-day PTO block for the Field Operations crew between project phases. Coverage has been arranged with subcontractors.',
     days: [
       { date: '2026-04-01', conflict: false },
       { date: '2026-04-02', conflict: false },
